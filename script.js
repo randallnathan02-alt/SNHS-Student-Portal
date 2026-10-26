@@ -1,4 +1,3 @@
-
 const SUPABASE_URL = "https://dtyowgfrslqgdjfrejug.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_B86cEGzE1BQGdqMKe0ftnw_aiG4vUA5";
@@ -24,13 +23,10 @@ let subjects = [];
 let students = [];
 let grades = [];
 
-// --------------------------------------------------
 // GENERAL HELPERS
-// --------------------------------------------------
 
 function showMessage(element, message, isError = false) {
   if (!element) return;
-
   element.textContent = message;
   element.classList.toggle("error", isError);
 }
@@ -49,7 +45,6 @@ function setOptions(element, items, valueKey, labelFunction, placeholder) {
   if (!element) return;
 
   const previousValue = element.value;
-
   element.innerHTML = "";
 
   const firstOption = document.createElement("option");
@@ -113,9 +108,7 @@ function setActiveAdminTab(tabName) {
   });
 }
 
-// --------------------------------------------------
 // LOGIN AND DASHBOARD
-// --------------------------------------------------
 
 async function loadDashboard() {
   const { data: sessionData, error: sessionError } =
@@ -155,8 +148,7 @@ async function loadDashboard() {
   loginSection.hidden = true;
   dashboardSection.hidden = false;
 
-  $("welcome-heading").textContent =
-    `Welcome, ${profile.first_name}`;
+  $("welcome-heading").textContent = `Welcome, ${profile.first_name}`;
 
   $("account-role").textContent =
     profile.role === "admin" ? "Administrator" : "Student";
@@ -230,9 +222,7 @@ $("logout-button").addEventListener("click", async () => {
   showLoggedOut("You have signed out.");
 });
 
-// --------------------------------------------------
 // CREATE STUDENT ACCOUNT
-// --------------------------------------------------
 
 createStudentForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -322,9 +312,7 @@ createStudentForm.addEventListener("submit", async (event) => {
   }
 });
 
-// --------------------------------------------------
 // ADMIN TABS
-// --------------------------------------------------
 
 document.querySelectorAll("[data-admin-tab]").forEach((button) => {
   button.addEventListener("click", async () => {
@@ -344,9 +332,7 @@ document.querySelectorAll("[data-admin-tab]").forEach((button) => {
   });
 });
 
-// --------------------------------------------------
 // LOAD ADMIN DATA
-// --------------------------------------------------
 
 async function loadAdminData() {
   if (currentProfile?.role !== "admin") return;
@@ -363,6 +349,9 @@ async function loadAdminData() {
   }
 }
 
+// LOAD STUDENTS
+// Corrected to normalize grade-level values and refresh the dropdown.
+
 async function loadStudents() {
   const { data, error } = await supabaseClient
     .from("profiles")
@@ -373,26 +362,26 @@ async function loadStudents() {
 
   if (error) {
     console.error("Load students error:", error);
-    showMessage(createMessage, "Could not load students.", true);
+
+    showMessage(
+      createMessage,
+      `Could not load students: ${error.message}`,
+      true
+    );
+
+    students = [];
+    updateGradeStudentOptions();
     return;
   }
 
   students = data || [];
 
-  setOptions(
-    $("grade-student"),
-    students,
-    "id",
-    (student) =>
-      `${student.student_id || ""} — ${student.last_name}, ${student.first_name}` +
-      (student.grade_level ? ` (Grade ${student.grade_level})` : ""),
-    "Select student"
-  );
+  updateGradeStudentOptions();
+
+  console.info(`Loaded ${students.length} active student profile(s).`);
 }
 
-// --------------------------------------------------
 // ACADEMIC TERMS
-// --------------------------------------------------
 
 $("create-term-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -421,6 +410,7 @@ $("create-term-form").addEventListener("submit", async (event) => {
 
     if (error) {
       console.error("Save term error:", error);
+
       showMessage(
         $("term-message"),
         error.code === "23505"
@@ -440,9 +430,7 @@ $("create-term-form").addEventListener("submit", async (event) => {
   }
 });
 
-// --------------------------------------------------
 // SUBJECTS
-// --------------------------------------------------
 
 $("create-subject-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -473,6 +461,7 @@ $("create-subject-form").addEventListener("submit", async (event) => {
 
     if (error) {
       console.error("Save subject error:", error);
+
       showMessage(
         $("subject-message"),
         error.code === "23505"
@@ -576,9 +565,7 @@ function renderSubjects() {
   `;
 }
 
-// --------------------------------------------------
 // GRADE ENTRY AND AUTOMATIC EVALUATION
-// --------------------------------------------------
 
 function updateGradeEvaluation() {
   const gradeInput = $("numerical-grade");
@@ -596,6 +583,7 @@ function updateGradeEvaluation() {
   evaluation.textContent = result;
 
   evaluation.classList.toggle("evaluation-failed", result === "Failed");
+
   evaluation.classList.toggle(
     "evaluation-passed",
     result !== "Failed" && !result.startsWith("Enter a grade")
@@ -610,7 +598,9 @@ function updateGradeSubjectOptions() {
 
   const filteredSubjects = subjects.filter((subject) =>
     (!termId || String(subject.term_id) === termId) &&
-    (!gradeLevel || String(subject.grade_level) === gradeLevel)
+    (!gradeLevel ||
+      normalizeGradeLevel(subject.grade_level) ===
+      normalizeGradeLevel(gradeLevel))
   );
 
   setOptions(
@@ -622,21 +612,55 @@ function updateGradeSubjectOptions() {
   );
 }
 
-function updateGradeStudentOptions() {
-  const gradeLevel = $("grade-level-filter").value;
+// NORMALIZE GRADE LEVEL
+// For example, "Grade 7", "grade 7", and "7" are treated as equivalent.
 
-  const filteredStudents = students.filter((student) =>
-    !gradeLevel || String(student.grade_level) === String(gradeLevel)
-  );
+function normalizeGradeLevel(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^grade\s*/, "")
+    .replace(/\s+/g, "");
+}
+
+// CORRECTED STUDENT DROPDOWN
+
+function updateGradeStudentOptions() {
+  const gradeLevel = $("grade-level-filter")?.value ?? "";
+
+  const filteredStudents = students.filter((student) => {
+    if (!gradeLevel) return true;
+
+    return normalizeGradeLevel(student.grade_level) ===
+      normalizeGradeLevel(gradeLevel);
+  });
 
   setOptions(
     $("grade-student"),
     filteredStudents,
     "id",
     (student) =>
-      `${student.student_id || ""} — ${student.last_name}, ${student.first_name}`,
-    "Select student"
+      `${student.student_id || "No ID"} — ${student.last_name}, ${student.first_name}` +
+      (student.grade_level
+        ? ` (Grade ${String(student.grade_level).replace(/^grade\s*/i, "")})`
+        : ""),
+    filteredStudents.length
+      ? "Select student"
+      : "No students found for this grade level"
   );
+
+  if (gradeLevel && filteredStudents.length === 0) {
+    console.warn(
+      "No students matched the selected grade level.",
+      {
+        selectedGradeLevel: gradeLevel,
+        loadedStudents: students.map((student) => ({
+          student_id: student.student_id,
+          grade_level: student.grade_level
+        }))
+      }
+    );
+  }
 }
 
 $("grade-term").addEventListener("change", updateGradeSubjectOptions);
@@ -694,7 +718,8 @@ $("grade-form").addEventListener("submit", async (event) => {
       !subject ||
       !student ||
       String(subject.term_id) !== termId ||
-      String(subject.grade_level) !== String(student.grade_level)
+      normalizeGradeLevel(subject.grade_level) !==
+        normalizeGradeLevel(student.grade_level)
     ) {
       showMessage(
         $("grade-message"),
@@ -752,9 +777,7 @@ async function loadGradeEntryData() {
   updateGradeStudentOptions();
 }
 
-// --------------------------------------------------
 // DISPLAY SAVED GRADES FOR ADMINISTRATORS
-// --------------------------------------------------
 
 async function loadAdminGrades() {
   if (currentProfile?.role !== "admin") return;
@@ -771,7 +794,8 @@ async function loadAdminGrades() {
 
   if (error) {
     console.error("Load grades error:", error);
-    container.textContent = "Could not load grades. Check database permissions.";
+    container.textContent =
+      "Could not load grades. Check database permissions.";
     return;
   }
 
@@ -817,7 +841,9 @@ function renderAdminGrades() {
                     ? `${student.first_name} ${student.last_name}`
                     : "Unknown student"
                 )}</td>
-                <td>${escapeHTML(subject?.grade_level || student?.grade_level || "—")}</td>
+                <td>${escapeHTML(
+                  subject?.grade_level || student?.grade_level || "—"
+                )}</td>
                 <td>${escapeHTML(term?.school_year || "Unknown")}</td>
                 <td>${escapeHTML(term?.term_name || "Unknown")}</td>
                 <td>${escapeHTML(subject?.subject_name || "Unknown")}</td>
@@ -832,9 +858,7 @@ function renderAdminGrades() {
   `;
 }
 
-// --------------------------------------------------
 // STUDENT VIEW: OWN GRADES ONLY
-// --------------------------------------------------
 
 async function loadStudentGrades() {
   if (currentProfile?.role !== "student") return;
@@ -852,6 +876,7 @@ async function loadStudentGrades() {
 
   if (gradeError) {
     console.error("Load student grades error:", gradeError);
+
     container.textContent =
       "Your grades could not be loaded. Please contact the school administrator.";
     return;
@@ -912,6 +937,7 @@ async function loadStudentGrades() {
             const subject = studentSubjects.find(
               (s) => s.id === item.subject_id
             );
+
             const term = studentTerms.find(
               (t) => t.id === subject?.term_id
             );
@@ -932,9 +958,7 @@ async function loadStudentGrades() {
   `;
 }
 
-// --------------------------------------------------
 // REFRESH BUTTONS
-// --------------------------------------------------
 
 $("refresh-subjects-button")?.addEventListener("click", async () => {
   await loadTermsAndSubjects();
@@ -946,9 +970,7 @@ $("refresh-grades-button")?.addEventListener("click", async () => {
   await loadAdminGrades();
 });
 
-// --------------------------------------------------
 // AUTHENTICATION STATE
-// --------------------------------------------------
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_OUT" || !session) {
@@ -956,5 +978,6 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Restore the session when the page opens.
+// RESTORE SESSION
+
 loadDashboard();
