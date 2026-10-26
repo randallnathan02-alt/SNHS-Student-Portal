@@ -367,9 +367,6 @@ createStudentForm.addEventListener("submit", async (event) => {
 
     createStudentForm.reset();
 
-    // Reload students and other admin data.
-    // The database trigger enrolls the new active student
-    // in matching subjects for their grade level.
     await loadAdminData();
   } catch (error) {
     console.error("Create student error:", error);
@@ -575,9 +572,6 @@ $("create-subject-form").addEventListener("submit", async (event) => {
       return;
     }
 
-    // Insert the subject.
-    // The Supabase AFTER INSERT trigger enrolls active students
-    // whose grade level matches this subject's grade level.
     const { data: newSubject, error } = await supabaseClient
       .from("subjects")
       .insert({
@@ -601,7 +595,6 @@ $("create-subject-form").addEventListener("submit", async (event) => {
       return;
     }
 
-    // Count enrollments created by the database trigger.
     const { count, error: countError } = await supabaseClient
       .from("student_subjects")
       .select("id", {
@@ -719,6 +712,7 @@ function renderSubjects() {
             <th>Term</th>
             <th>Grade Level</th>
             <th>Subject</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -731,8 +725,15 @@ function renderSubjects() {
               <tr>
                 <td>${escapeHTML(term?.school_year || "Unknown")}</td>
                 <td>${escapeHTML(term?.term_name || "Unknown")}</td>
-                <td>${escapeHTML(subject.grade_level)}</td>
-                <td>${escapeHTML(subject.subject_name)}</td>
+                <td>${escapeHTML(subject.grade_level || "")}</td>
+                <td>${escapeHTML(subject.subject_name || "")}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="delete-subject-button"
+                    data-subject-id="${escapeHTML(subject.id)}"
+                  >Delete</button>
+                </td>
               </tr>
             `;
           }).join("")}
@@ -740,6 +741,90 @@ function renderSubjects() {
       </table>
     </div>
   `;
+}
+
+// ==================================================
+// DELETE SUBJECT
+// ==================================================
+
+const subjectsList = $("subjects-list");
+
+if (subjectsList) {
+  subjectsList.addEventListener("click", async (event) => {
+    const button = event.target.closest(".delete-subject-button");
+    if (!button) return;
+
+    if (currentProfile?.role !== "admin") {
+      alert("Only an administrator can delete subjects.");
+      return;
+    }
+
+    const subjectId = button.dataset.subjectId;
+    const subject = subjects.find(
+      (item) => String(item.id) === String(subjectId)
+    );
+
+    if (!subject) {
+      alert("Subject not found. Refresh the list and try again.");
+      return;
+    }
+
+    const confirmed = confirm(
+      `Are you sure you want to delete "${subject.subject_name}"?\n\n` +
+      "Its grades and enrollment records will also be deleted. " +
+      "This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = "Deleting...";
+
+    try {
+      const { error: gradesError } = await supabaseClient
+        .from("student_grades")
+        .delete()
+        .eq("subject_id", subjectId);
+
+      if (gradesError) throw gradesError;
+
+      const { error: enrollmentError } = await supabaseClient
+        .from("student_subjects")
+        .delete()
+        .eq("subject_id", subjectId);
+
+      if (enrollmentError) throw enrollmentError;
+
+      const { error: subjectError } = await supabaseClient
+        .from("subjects")
+        .delete()
+        .eq("id", subjectId);
+
+      if (subjectError) throw subjectError;
+
+      showMessage(
+        $("subject-message"),
+        "Subject deleted successfully."
+      );
+
+      await loadTermsAndSubjects();
+      await loadStudents();
+      await loadAdminGrades();
+    } catch (error) {
+      console.error("Delete subject error:", error);
+
+      showMessage(
+        $("subject-message"),
+        `Unable to delete subject: ${error.message || "Unknown database error"}`,
+        true
+      );
+
+      await loadTermsAndSubjects();
+    } finally {
+      button.disabled = false;
+      button.textContent = "Delete";
+    }
+  });
 }
 
 // ==================================================
@@ -927,7 +1012,6 @@ $("grade-form").addEventListener("submit", async (event) => {
       return;
     }
 
-    // Confirm that the student is enrolled in the subject.
     const { data: enrollment, error: enrollmentError } =
       await supabaseClient
         .from("student_subjects")
@@ -1054,8 +1138,7 @@ function renderAdminGrades() {
   if (!container) return;
 
   if (!grades.length) {
-    container.textContent =
-      "No grades have been recorded yet.";
+    container.textContent = "No grades have been recorded yet.";
     return;
   }
 
@@ -1072,6 +1155,7 @@ function renderAdminGrades() {
             <th>Subject</th>
             <th>Grade</th>
             <th>Evaluation</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -1088,24 +1172,30 @@ function renderAdminGrades() {
               (t) => String(t.id) === String(subject?.term_id)
             );
 
+            const studentName = student
+              ? `${student.first_name || ""} ${student.last_name || ""}`.trim()
+              : "Unknown student";
+
             return `
               <tr>
                 <td>${escapeHTML(student?.student_id || "Unknown")}</td>
+                <td>${escapeHTML(studentName)}</td>
                 <td>${escapeHTML(
-                  student
-                    ? `${student.first_name} ${student.last_name}`
-                    : "Unknown student"
-                )}</td>
-                <td>${escapeHTML(
-                  subject?.grade_level ||
-                  student?.grade_level ||
-                  "—"
+                  subject?.grade_level || student?.grade_level || "—"
                 )}</td>
                 <td>${escapeHTML(term?.school_year || "Unknown")}</td>
                 <td>${escapeHTML(term?.term_name || "Unknown")}</td>
                 <td>${escapeHTML(subject?.subject_name || "Unknown")}</td>
                 <td>${formatGrade(item.grade)}</td>
                 <td>${escapeHTML(gradeEvaluation(item.grade))}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="edit-grade-button"
+                    data-student-id="${escapeHTML(item.student_id)}"
+                    data-subject-id="${escapeHTML(item.subject_id)}"
+                  >Edit</button>
+                </td>
               </tr>
             `;
           }).join("")}
@@ -1113,6 +1203,107 @@ function renderAdminGrades() {
       </table>
     </div>
   `;
+}
+
+// ==================================================
+// EDIT AN EXISTING GRADE
+// ==================================================
+
+const gradesList = $("grades-list");
+
+if (gradesList) {
+  gradesList.addEventListener("click", async (event) => {
+    const button = event.target.closest(".edit-grade-button");
+    if (!button) return;
+
+    if (currentProfile?.role !== "admin") {
+      alert("Only an administrator can edit grades.");
+      return;
+    }
+
+    const studentId = button.dataset.studentId;
+    const subjectId = button.dataset.subjectId;
+
+    const existingGrade = grades.find(
+      (item) =>
+        String(item.student_id) === String(studentId) &&
+        String(item.subject_id) === String(subjectId)
+    );
+
+    if (!existingGrade) {
+      alert("Grade record not found. Refresh the grade list and try again.");
+      return;
+    }
+
+    const enteredGrade = prompt(
+      "Enter the corrected numerical grade (0–100):",
+      String(existingGrade.grade)
+    );
+
+    if (enteredGrade === null) return;
+
+    const rawGrade = enteredGrade.trim();
+    const newGrade = Number(rawGrade);
+
+    if (
+      rawGrade === "" ||
+      !Number.isFinite(newGrade) ||
+      newGrade < 0 ||
+      newGrade > 100
+    ) {
+      alert("Invalid grade. Enter a number from 0 to 100.");
+      return;
+    }
+
+    const confirmed = confirm(
+      `Change the grade from ${existingGrade.grade} to ${newGrade}?\n\n` +
+      `New evaluation: ${gradeEvaluation(newGrade)}`
+    );
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = "Saving...";
+
+    try {
+      const { data, error } = await supabaseClient
+        .from("student_grades")
+        .update({
+          grade: newGrade,
+          updated_by: currentUser.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq("student_id", studentId)
+        .eq("subject_id", subjectId)
+        .select("student_id, subject_id, grade");
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error(
+          "No grade was updated. Check administrator permissions and the grade record."
+        );
+      }
+
+      showMessage(
+        $("grade-message"),
+        `Grade updated successfully. Evaluation: ${gradeEvaluation(newGrade)}.`
+      );
+
+      await loadAdminGrades();
+    } catch (error) {
+      console.error("Edit grade error:", error);
+
+      showMessage(
+        $("grade-message"),
+        `Unable to update grade: ${error.message || "Unknown database error"}`,
+        true
+      );
+    } finally {
+      button.disabled = false;
+      button.textContent = "Edit";
+    }
+  });
 }
 
 // ==================================================
@@ -1133,7 +1324,6 @@ async function loadStudentGrades() {
   container.textContent = "Loading your subjects and grades...";
 
   try {
-    // Load subjects in which this student is enrolled.
     const { data: enrollmentData, error: enrollmentError } =
       await supabaseClient
         .from("student_subjects")
@@ -1160,7 +1350,6 @@ async function loadStudentGrades() {
       return;
     }
 
-    // Load the enrolled subjects.
     const { data: subjectData, error: subjectError } =
       await supabaseClient
         .from("subjects")
@@ -1202,7 +1391,6 @@ async function loadStudentGrades() {
       studentTerms = termData || [];
     }
 
-    // Load grades belonging to the logged-in student.
     const { data: gradeData, error: gradeError } =
       await supabaseClient
         .from("student_grades")
@@ -1219,7 +1407,6 @@ async function loadStudentGrades() {
 
     const studentGrades = gradeData || [];
 
-    // Show every enrolled subject, including subjects without grades.
     container.innerHTML = `
       <div class="table-container">
         <table>
@@ -1315,5 +1502,8 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 // Restore the user's session when the page opens.
 loadDashboard().catch((error) => {
   console.error("Dashboard initialization error:", error);
-  showLoggedOut("Could not load the dashboard. Please sign in again.");
+
+  showLoggedOut(
+    "Could not load the dashboard. Please sign in again."
+  );
 });
