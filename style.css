@@ -1,18 +1,28 @@
 :root {
-  --navy: #123568;
-  --blue: #1769aa;
-  --blue-dark: #0d4f87;
-  --background: #f3f6fb;
+  /* SNHS school colors */
+  --navy: #08085b;
+  --blue: #17178b;
+  --blue-dark: #0b0b60;
+  --gold: #f4d900;
+  --gold-dark: #d4b900;
+  --gold-light: #fffbe0;
+
+  /* Interface colors */
+  --background: #f4f6fc;
   --white: #ffffff;
-  --text: #25344a;
-  --muted: #68778b;
-  --border: #dce4ee;
+  --text: #202544;
+  --muted: #68728b;
+  --border: #dce2ef;
   --danger: #b42318;
   --success: #18794e;
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -26,43 +36,64 @@ body {
   line-height: 1.6;
 }
 
-/* Header */
+/* =========================================
+   SCHOOL HEADER
+========================================= */
+
 .site-header {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   padding: 22px max(5%, calc((100% - 1100px) / 2));
   background: var(--navy);
   color: var(--white);
-  box-shadow: 0 3px 12px rgba(18, 53, 104, 0.18);
+  border-bottom: 4px solid var(--gold);
+  box-shadow: 0 4px 16px rgba(8, 8, 91, 0.18);
 }
 
 .school-mark {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 58px;
-  height: 58px;
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border: 2px solid var(--gold);
   border-radius: 50%;
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: 1px;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(244, 217, 0, 0.12);
+}
+
+.school-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.school-header-text {
+  min-width: 0;
 }
 
 .site-header h1 {
   margin: 0;
+  color: var(--white);
   font-size: clamp(20px, 3vw, 28px);
   line-height: 1.3;
+  font-weight: 800;
 }
 
 .site-header p {
-  margin: 4px 0 0;
-  color: #dce9fa;
+  margin: 5px 0 0;
+  color: #fff4a3;
   font-size: 14px;
 }
 
-/* Main layout */
+/* =========================================
+   MAIN LAYOUT
+========================================= */
+
 .container {
   width: min(100% - 32px, 1000px);
   margin: 36px auto;
@@ -74,19 +105,23 @@ body {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(24, 49, 83, 0.07);
+  box-shadow: 0 8px 28px rgba(8, 8, 91, 0.06);
 }
 
 .panel h2 {
   margin: 0 0 8px;
   color: var(--navy);
   font-size: 26px;
+  font-weight: 800;
 }
 
 .panel h3 {
   margin: 26px 0 8px;
+  padding-bottom: 5px;
   color: var(--navy);
   font-size: 20px;
+  font-weight: 750;
+  border-bottom: 2px solid var(--gold);
 }
 
 .panel h4 {
@@ -98,7 +133,10 @@ body {
   color: var(--muted);
 }
 
-/* Forms */
+/* =========================================
+   FORMS
+========================================= */
+
 form {
   display: flex;
   flex-direction: column;
@@ -108,6 +146,7 @@ form {
 
 label {
   margin-top: 5px;
+  color: var(--navy);
   font-size: 14px;
   font-weight: 700;
 }
@@ -118,24 +157,40 @@ select {
   min-height: 46px;
   padding: 11px 13px;
   color: var(--text);
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 7px;
   font: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input:hover,
+select:hover {
+  border-color: #a8b3cf;
 }
 
 input:focus,
 select:focus {
-  outline: 3px solid rgba(23, 105, 170, 0.17);
+  outline: none;
   border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(23, 23, 139, 0.12);
 }
 
-/* General buttons */
+input::placeholder {
+  color: #8992a7;
+}
+
+/* =========================================
+   GENERAL BUTTONS
+========================================= */
+
 button {
   min-height: 44px;
   margin-top: 12px;
   padding: 10px 16px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 7px;
   background: var(--blue);
   color: var(--white);
@@ -144,41 +199,56 @@ button {
   cursor: pointer;
   transition:
     background 0.15s ease,
-    opacity 0.15s ease;
+    color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 button:hover {
   background: var(--blue-dark);
 }
 
+button:active {
+  transform: translateY(1px);
+}
+
 button:disabled {
   cursor: wait;
   opacity: 0.65;
+  transform: none;
 }
 
 button:focus-visible {
-  outline: 3px solid rgba(23, 105, 170, 0.4);
-  outline-offset: 2px;
+  outline: 3px solid rgba(244, 217, 0, 0.85);
+  outline-offset: 3px;
 }
 
+/* Secondary buttons */
 .secondary-button {
   margin-top: 0;
-  background: #e8eef7;
+  background: #edf0fb;
   color: var(--navy);
+  border: 1px solid #d7def0;
 }
 
 .secondary-button:hover {
-  background: #d9e4f3;
+  background: var(--gold-light);
+  color: var(--navy);
+  border-color: var(--gold-dark);
 }
 
-/* Dashboard header */
+/* =========================================
+   DASHBOARD HEADER
+========================================= */
+
 .dashboard-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--gold);
 }
 
 .dashboard-heading h2 {
@@ -190,7 +260,10 @@ button:focus-visible {
   color: var(--muted);
 }
 
-/* Administrator tabs */
+/* =========================================
+   ADMINISTRATOR TABS
+========================================= */
+
 .admin-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -203,17 +276,22 @@ button:focus-visible {
 .admin-tab {
   flex: 1 1 150px;
   margin: 0;
-  background: #e8eef7;
+  background: #edf0fb;
   color: var(--navy);
+  border: 1px solid #dce2f3;
 }
 
 .admin-tab:hover {
-  background: #d9e4f3;
+  background: var(--gold-light);
+  color: var(--navy);
+  border-color: var(--gold-dark);
 }
 
 .admin-tab.active {
   background: var(--navy);
   color: var(--white);
+  border-color: var(--gold);
+  box-shadow: inset 0 -3px 0 var(--gold);
 }
 
 .admin-panel {
@@ -224,14 +302,21 @@ button:focus-visible {
   color: var(--muted);
 }
 
-/* Automatic grade evaluation */
+/* =========================================
+   AUTOMATIC GRADE EVALUATION
+========================================= */
+
 .evaluation-panel {
   margin-top: 12px;
   padding: 18px;
-  background: #f3f6fb;
+  background: #f3f5fc;
   border: 1px solid var(--border);
   border-left: 5px solid var(--blue);
   border-radius: 9px;
+}
+
+.evaluation-panel h4 {
+  color: var(--navy);
 }
 
 .evaluation-panel p {
@@ -259,7 +344,10 @@ button:focus-visible {
   color: var(--success);
 }
 
-/* Messages */
+/* =========================================
+   MESSAGES AND HELP TEXT
+========================================= */
+
 .message {
   min-height: 24px;
   margin: 14px 0 0;
@@ -269,6 +357,7 @@ button:focus-visible {
 
 .message.error {
   color: var(--danger);
+  font-weight: 600;
 }
 
 .help-text {
@@ -277,7 +366,10 @@ button:focus-visible {
   font-size: 13px;
 }
 
-/* Tables */
+/* =========================================
+   TABLES
+========================================= */
+
 .table-container {
   width: 100%;
   max-width: 100%;
@@ -285,6 +377,7 @@ button:focus-visible {
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
+  background: var(--white);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -303,10 +396,19 @@ button:focus-visible {
 }
 
 .table-container th {
-  background: #edf2f8;
+  background: #e9ecf9;
   color: var(--navy);
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
+  border-bottom: 2px solid var(--gold-dark);
+}
+
+.table-container tbody tr:nth-child(even) {
+  background: #fafbff;
+}
+
+.table-container tbody tr:hover {
+  background: #fffdf0;
 }
 
 .table-container tr:last-child td {
@@ -323,48 +425,55 @@ button:focus-visible {
   color: var(--muted);
 }
 
-/* Buttons inside tables */
 .table-container td button {
   display: inline-block;
   width: auto;
 }
 
-/* Delete Subject button */
+/* =========================================
+   DELETE SUBJECT BUTTON
+========================================= */
+
 .delete-subject-button {
   min-height: 36px;
   margin-top: 0;
   padding: 8px 12px;
-  background: #dc2626;
+  background: #b42318;
   color: #ffffff;
-  border: none;
+  border: 1px solid #b42318;
   border-radius: 5px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .delete-subject-button:hover {
-  background: #b91c1c;
+  background: #8f1d14;
+  border-color: #8f1d14;
 }
 
-/* Edit Grade button */
+/* =========================================
+   EDIT GRADE BUTTON
+========================================= */
+
 .edit-grade-button {
   min-height: 36px;
   margin-top: 0;
   padding: 8px 12px;
-  background: #2563eb;
+  background: var(--blue);
   color: #ffffff;
-  border: none;
+  border: 1px solid var(--blue);
   border-radius: 5px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .edit-grade-button:hover {
-  background: #1d4ed8;
+  background: var(--blue-dark);
+  border-color: var(--gold-dark);
 }
 
 /* Disabled action buttons */
@@ -374,31 +483,43 @@ button:focus-visible {
   cursor: wait;
 }
 
-/* Keep action buttons accessible */
+/* Accessible focus indicators */
 .delete-subject-button:focus-visible,
 .edit-grade-button:focus-visible {
-  outline: 3px solid rgba(23, 105, 170, 0.4);
-  outline-offset: 2px;
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
 }
 
-/* Hidden elements */
+/* =========================================
+   HIDDEN ELEMENTS
+========================================= */
+
 [hidden] {
   display: none !important;
 }
 
-/* Footer */
+/* =========================================
+   FOOTER
+========================================= */
+
 footer {
+  margin-top: auto;
   padding: 18px;
-  color: var(--muted);
+  background: var(--navy);
+  color: #ffffff;
   text-align: center;
   font-size: 13px;
+  border-top: 3px solid var(--gold);
 }
 
 footer p {
   margin: 0;
 }
 
-/* Mobile and tablet adjustments */
+/* =========================================
+   MOBILE AND TABLET
+========================================= */
+
 @media (max-width: 600px) {
   .site-header {
     padding: 18px 16px;
@@ -406,9 +527,16 @@ footer p {
   }
 
   .school-mark {
-    width: 48px;
-    height: 48px;
-    font-size: 14px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .site-header h1 {
+    font-size: 20px;
+  }
+
+  .site-header p {
+    font-size: 12px;
   }
 
   .container {
@@ -418,6 +546,14 @@ footer p {
 
   .panel {
     padding: 20px 16px;
+  }
+
+  .panel h2 {
+    font-size: 23px;
+  }
+
+  .panel h3 {
+    font-size: 18px;
   }
 
   .dashboard-heading {
@@ -440,5 +576,23 @@ footer p {
   .table-container th,
   .table-container td {
     padding: 10px;
+  }
+}
+
+/* =========================================
+   REDUCED MOTION ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
