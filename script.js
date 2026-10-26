@@ -1,3 +1,8 @@
+// ==================================================
+// SNHS STUDENT PORTAL
+// Complete script.js
+// ==================================================
+
 const SUPABASE_URL = "https://dtyowgfrslqgdjfrejug.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_B86cEGzE1BQGdqMKe0ftnw_aiG4vUA5";
@@ -23,10 +28,13 @@ let subjects = [];
 let students = [];
 let grades = [];
 
+// ==================================================
 // GENERAL HELPERS
+// ==================================================
 
 function showMessage(element, message, isError = false) {
   if (!element) return;
+
   element.textContent = message;
   element.classList.toggle("error", isError);
 }
@@ -41,10 +49,52 @@ function escapeHTML(value) {
   })[character]);
 }
 
-function setOptions(element, items, valueKey, labelFunction, placeholder) {
+function normalizeGradeLevel(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^grade\s*/, "")
+    .replace(/\s+/g, "");
+}
+
+function formatGrade(grade) {
+  if (grade === null || grade === undefined || grade === "") {
+    return "Not yet graded";
+  }
+
+  return Number(grade).toFixed(2);
+}
+
+function gradeEvaluation(grade) {
+  if (grade === null || grade === undefined || grade === "") {
+    return "Not yet graded";
+  }
+
+  const value = Number(grade);
+
+  if (!Number.isFinite(value) || value < 0 || value > 100) {
+    return "Invalid grade";
+  }
+
+  if (value >= 90) return "Outstanding";
+  if (value >= 85) return "Very Satisfactory";
+  if (value >= 80) return "Satisfactory";
+  if (value >= 75) return "Fairly Satisfactory";
+
+  return "Failed";
+}
+
+function setOptions(
+  element,
+  items,
+  valueKey,
+  labelFunction,
+  placeholder
+) {
   if (!element) return;
 
   const previousValue = element.value;
+
   element.innerHTML = "";
 
   const firstOption = document.createElement("option");
@@ -59,46 +109,37 @@ function setOptions(element, items, valueKey, labelFunction, placeholder) {
     element.appendChild(option);
   });
 
-  if ([...element.options].some((option) => option.value === previousValue)) {
+  if (
+    [...element.options].some(
+      (option) => option.value === previousValue
+    )
+  ) {
     element.value = previousValue;
   }
-}
-
-function gradeEvaluation(grade) {
-  const value = Number(grade);
-
-  if (!Number.isFinite(value) || value < 0 || value > 100) {
-    return "Enter a grade from 0 to 100.";
-  }
-
-  if (value >= 90) return "Outstanding";
-  if (value >= 85) return "Very Satisfactory";
-  if (value >= 80) return "Satisfactory";
-  if (value >= 75) return "Fairly Satisfactory";
-
-  return "Failed";
-}
-
-function formatGrade(grade) {
-  return Number(grade).toFixed(2);
 }
 
 function showLoggedOut(message = "") {
   if (loginSection) loginSection.hidden = false;
   if (dashboardSection) dashboardSection.hidden = true;
 
-  if ($("admin-section")) $("admin-section").hidden = true;
-  if ($("student-section")) $("student-section").hidden = true;
+  if ($("admin-section")) {
+    $("admin-section").hidden = true;
+  }
+
+  if ($("student-section")) {
+    $("student-section").hidden = true;
+  }
 
   currentUser = null;
   currentProfile = null;
 
-  showMessage(loginMessage, message, Boolean(message));
+  showMessage(loginMessage, message, false);
 }
 
 function setActiveAdminTab(tabName) {
   document.querySelectorAll("[data-admin-tab]").forEach((button) => {
     const active = button.dataset.adminTab === tabName;
+
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
   });
@@ -108,7 +149,9 @@ function setActiveAdminTab(tabName) {
   });
 }
 
+// ==================================================
 // LOGIN AND DASHBOARD
+// ==================================================
 
 async function loadDashboard() {
   const { data: sessionData, error: sessionError } =
@@ -121,13 +164,14 @@ async function loadDashboard() {
 
   currentUser = sessionData.session.user;
 
-  const { data: profile, error: profileError } = await supabaseClient
-    .from("profiles")
-    .select(
-      "id, student_id, first_name, last_name, role, is_active, grade_level, section"
-    )
-    .eq("id", currentUser.id)
-    .maybeSingle();
+  const { data: profile, error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .select(
+        "id, student_id, first_name, last_name, role, is_active, grade_level, section"
+      )
+      .eq("id", currentUser.id)
+      .maybeSingle();
 
   if (
     profileError ||
@@ -148,7 +192,8 @@ async function loadDashboard() {
   loginSection.hidden = true;
   dashboardSection.hidden = false;
 
-  $("welcome-heading").textContent = `Welcome, ${profile.first_name}`;
+  $("welcome-heading").textContent =
+    `Welcome, ${profile.first_name}`;
 
   $("account-role").textContent =
     profile.role === "admin" ? "Administrator" : "Student";
@@ -160,7 +205,9 @@ async function loadDashboard() {
     $("student-details").textContent =
       `Student ID: ${profile.student_id || "Not assigned"} | ` +
       `Name: ${profile.first_name} ${profile.last_name}` +
-      (profile.grade_level ? ` | Grade Level: ${profile.grade_level}` : "");
+      (profile.grade_level
+        ? ` | Grade Level: ${profile.grade_level}`
+        : "");
 
     await loadStudentGrades();
   } else {
@@ -174,6 +221,7 @@ loginForm.addEventListener("submit", async (event) => {
 
   const button = $("login-button");
   button.disabled = true;
+
   showMessage(loginMessage, "Signing in...");
 
   try {
@@ -193,13 +241,15 @@ loginForm.addEventListener("submit", async (event) => {
       ? loginId.toLowerCase()
       : `${loginId.toLowerCase()}@students.snhs.invalid`;
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
     if (error) {
       console.error("Login error:", error.message);
+
       showMessage(
         loginMessage,
         "Sign-in failed. Check your login ID and password.",
@@ -211,7 +261,12 @@ loginForm.addEventListener("submit", async (event) => {
     await loadDashboard();
   } catch (error) {
     console.error("Login connection error:", error);
-    showMessage(loginMessage, "Connection error. Please try again.", true);
+
+    showMessage(
+      loginMessage,
+      "Connection error. Please try again.",
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -222,13 +277,25 @@ $("logout-button").addEventListener("click", async () => {
   showLoggedOut("You have signed out.");
 });
 
+// ==================================================
 // CREATE STUDENT ACCOUNT
+// ==================================================
 
 createStudentForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  if (currentProfile?.role !== "admin") {
+    showMessage(
+      createMessage,
+      "Administrator access is required.",
+      true
+    );
+    return;
+  }
+
   const button = $("create-student-button");
   button.disabled = true;
+
   showMessage(createMessage, "Creating student account...");
 
   try {
@@ -237,11 +304,7 @@ createStudentForm.addEventListener("submit", async (event) => {
 
     const accessToken = sessionData.session?.access_token;
 
-    if (
-      sessionError ||
-      !accessToken ||
-      currentProfile?.role !== "admin"
-    ) {
+    if (sessionError || !accessToken) {
       showMessage(
         createMessage,
         "Please sign in again as administrator.",
@@ -303,22 +366,34 @@ createStudentForm.addEventListener("submit", async (event) => {
     );
 
     createStudentForm.reset();
+
+    // Reload students and other admin data.
+    // The database trigger enrolls the new active student
+    // in matching subjects for their grade level.
     await loadAdminData();
   } catch (error) {
     console.error("Create student error:", error);
-    showMessage(createMessage, "Connection error. Please try again.", true);
+
+    showMessage(
+      createMessage,
+      "Connection error. Please try again.",
+      true
+    );
   } finally {
     button.disabled = false;
   }
 });
 
+// ==================================================
 // ADMIN TABS
+// ==================================================
 
 document.querySelectorAll("[data-admin-tab]").forEach((button) => {
   button.addEventListener("click", async () => {
     if (currentProfile?.role !== "admin") return;
 
     const tabName = button.dataset.adminTab;
+
     setActiveAdminTab(tabName);
 
     if (tabName === "students") {
@@ -326,13 +401,17 @@ document.querySelectorAll("[data-admin-tab]").forEach((button) => {
     } else if (tabName === "subjects") {
       await loadTermsAndSubjects();
     } else if (tabName === "grades") {
+      await loadTermsAndSubjects();
+      await loadStudents();
       await loadGradeEntryData();
       await loadAdminGrades();
     }
   });
 });
 
+// ==================================================
 // LOAD ADMIN DATA
+// ==================================================
 
 async function loadAdminData() {
   if (currentProfile?.role !== "admin") return;
@@ -344,18 +423,18 @@ async function loadAdminData() {
   }
 
   if (!$("admin-panel-grades")?.hidden) {
+    await loadTermsAndSubjects();
     await loadGradeEntryData();
     await loadAdminGrades();
   }
 }
 
-// LOAD STUDENTS
-// Corrected to normalize grade-level values and refresh the dropdown.
-
 async function loadStudents() {
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select("id, student_id, first_name, last_name, grade_level, section")
+    .select(
+      "id, student_id, first_name, last_name, grade_level, section"
+    )
     .eq("role", "student")
     .eq("is_active", true)
     .order("last_name");
@@ -378,18 +457,30 @@ async function loadStudents() {
 
   updateGradeStudentOptions();
 
-  console.info(`Loaded ${students.length} active student profile(s).`);
+  console.info(
+    `Loaded ${students.length} active student profile(s).`
+  );
 }
 
+// ==================================================
 // ACADEMIC TERMS
+// ==================================================
 
 $("create-term-form").addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  if (currentProfile?.role !== "admin") return;
+  if (currentProfile?.role !== "admin") {
+    showMessage(
+      $("term-message"),
+      "Administrator access is required.",
+      true
+    );
+    return;
+  }
 
   const button = $("create-term-button");
   button.disabled = true;
+
   showMessage($("term-message"), "Saving academic term...");
 
   try {
@@ -397,7 +488,11 @@ $("create-term-form").addEventListener("submit", async (event) => {
     const schoolYear = $("school-year").value.trim();
 
     if (!termName || !schoolYear) {
-      showMessage($("term-message"), "Complete all term fields.", true);
+      showMessage(
+        $("term-message"),
+        "Complete all term fields.",
+        true
+      );
       return;
     }
 
@@ -421,25 +516,50 @@ $("create-term-form").addEventListener("submit", async (event) => {
       return;
     }
 
-    showMessage($("term-message"), "Academic term saved successfully.");
+    showMessage(
+      $("term-message"),
+      "Academic term saved successfully."
+    );
+
     $("create-term-form").reset();
 
     await loadTermsAndSubjects();
+  } catch (error) {
+    console.error("Save term error:", error);
+
+    showMessage(
+      $("term-message"),
+      `Could not save term: ${error.message}`,
+      true
+    );
   } finally {
     button.disabled = false;
   }
 });
 
-// SUBJECTS
+// ==================================================
+// SUBJECTS AND AUTOMATIC ENROLLMENT
+// ==================================================
 
 $("create-subject-form").addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  if (currentProfile?.role !== "admin") return;
+  if (currentProfile?.role !== "admin") {
+    showMessage(
+      $("subject-message"),
+      "Administrator access is required.",
+      true
+    );
+    return;
+  }
 
   const button = $("create-subject-button");
   button.disabled = true;
-  showMessage($("subject-message"), "Saving subject...");
+
+  showMessage(
+    $("subject-message"),
+    "Saving subject and enrolling students..."
+  );
 
   try {
     const termId = $("subject-term").value;
@@ -447,17 +567,26 @@ $("create-subject-form").addEventListener("submit", async (event) => {
     const subjectName = $("subject-name").value.trim();
 
     if (!termId || !gradeLevel || !subjectName) {
-      showMessage($("subject-message"), "Complete all subject fields.", true);
+      showMessage(
+        $("subject-message"),
+        "Complete all subject fields.",
+        true
+      );
       return;
     }
 
-    const { error } = await supabaseClient
+    // Insert the subject.
+    // The Supabase AFTER INSERT trigger enrolls active students
+    // whose grade level matches this subject's grade level.
+    const { data: newSubject, error } = await supabaseClient
       .from("subjects")
       .insert({
         term_id: Number(termId),
         grade_level: gradeLevel,
         subject_name: subjectName
-      });
+      })
+      .select("id, term_id, subject_name, grade_level")
+      .single();
 
     if (error) {
       console.error("Save subject error:", error);
@@ -466,16 +595,51 @@ $("create-subject-form").addEventListener("submit", async (event) => {
         $("subject-message"),
         error.code === "23505"
           ? "This subject already exists for that term and grade level."
-          : error.message,
+          : `Could not save subject: ${error.message}`,
         true
       );
       return;
     }
 
-    showMessage($("subject-message"), "Subject saved successfully.");
+    // Count enrollments created by the database trigger.
+    const { count, error: countError } = await supabaseClient
+      .from("student_subjects")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("subject_id", newSubject.id);
+
+    if (countError) {
+      console.error("Enrollment count error:", countError);
+
+      showMessage(
+        $("subject-message"),
+        `Subject "${newSubject.subject_name}" was saved. ` +
+        "Automatic enrollment was processed by the database, " +
+        "but the enrollment count could not be retrieved."
+      );
+    } else {
+      showMessage(
+        $("subject-message"),
+        `Subject "${newSubject.subject_name}" saved successfully. ` +
+        `${count ?? 0} student(s) enrolled in Grade ${newSubject.grade_level}.`
+      );
+    }
+
     $("subject-name").value = "";
 
     await loadTermsAndSubjects();
+    await loadStudents();
+    await loadAdminGrades();
+  } catch (error) {
+    console.error("Subject enrollment error:", error);
+
+    showMessage(
+      $("subject-message"),
+      `An error occurred: ${error.message}`,
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -492,21 +656,32 @@ async function loadTermsAndSubjects() {
 
   if (termError) {
     console.error("Load terms error:", termError);
-    showMessage($("term-message"), "Could not load academic terms.", true);
+
+    showMessage(
+      $("term-message"),
+      `Could not load academic terms: ${termError.message}`,
+      true
+    );
     return;
   }
 
   terms = termData || [];
 
-  const { data: subjectData, error: subjectError } = await supabaseClient
-    .from("subjects")
-    .select("id, term_id, subject_name, grade_level")
-    .order("grade_level")
-    .order("subject_name");
+  const { data: subjectData, error: subjectError } =
+    await supabaseClient
+      .from("subjects")
+      .select("id, term_id, subject_name, grade_level")
+      .order("grade_level")
+      .order("subject_name");
 
   if (subjectError) {
     console.error("Load subjects error:", subjectError);
-    showMessage($("subject-message"), "Could not load subjects.", true);
+
+    showMessage(
+      $("subject-message"),
+      `Could not load subjects: ${subjectError.message}`,
+      true
+    );
     return;
   }
 
@@ -521,6 +696,8 @@ async function loadTermsAndSubjects() {
   );
 
   renderSubjects();
+
+  updateGradeSubjectOptions();
   await loadGradeEntryData();
 }
 
@@ -547,7 +724,7 @@ function renderSubjects() {
         <tbody>
           ${subjects.map((subject) => {
             const term = terms.find(
-              (item) => item.id === subject.term_id
+              (item) => String(item.id) === String(subject.term_id)
             );
 
             return `
@@ -565,7 +742,9 @@ function renderSubjects() {
   `;
 }
 
+// ==================================================
 // GRADE ENTRY AND AUTOMATIC EVALUATION
+// ==================================================
 
 function updateGradeEvaluation() {
   const gradeInput = $("numerical-grade");
@@ -574,34 +753,53 @@ function updateGradeEvaluation() {
   if (!gradeInput || !evaluation) return;
 
   if (gradeInput.value.trim() === "") {
-    evaluation.textContent = "Enter a numerical grade to evaluate.";
-    evaluation.classList.remove("evaluation-failed", "evaluation-passed");
+    evaluation.textContent =
+      "Enter a numerical grade to evaluate.";
+
+    evaluation.classList.remove(
+      "evaluation-failed",
+      "evaluation-passed"
+    );
     return;
   }
 
   const result = gradeEvaluation(gradeInput.value);
+
   evaluation.textContent = result;
 
-  evaluation.classList.toggle("evaluation-failed", result === "Failed");
+  evaluation.classList.toggle(
+    "evaluation-failed",
+    result === "Failed"
+  );
 
   evaluation.classList.toggle(
     "evaluation-passed",
-    result !== "Failed" && !result.startsWith("Enter a grade")
+    result !== "Failed" &&
+    result !== "Invalid grade" &&
+    result !== "Not yet graded"
   );
 }
 
-$("numerical-grade").addEventListener("input", updateGradeEvaluation);
+$("numerical-grade").addEventListener(
+  "input",
+  updateGradeEvaluation
+);
 
 function updateGradeSubjectOptions() {
-  const termId = $("grade-term").value;
-  const gradeLevel = $("grade-level-filter").value;
+  const termId = $("grade-term")?.value ?? "";
+  const gradeLevel = $("grade-level-filter")?.value ?? "";
 
-  const filteredSubjects = subjects.filter((subject) =>
-    (!termId || String(subject.term_id) === termId) &&
-    (!gradeLevel ||
+  const filteredSubjects = subjects.filter((subject) => {
+    const termMatches =
+      !termId || String(subject.term_id) === String(termId);
+
+    const gradeMatches =
+      !gradeLevel ||
       normalizeGradeLevel(subject.grade_level) ===
-      normalizeGradeLevel(gradeLevel))
-  );
+        normalizeGradeLevel(gradeLevel);
+
+    return termMatches && gradeMatches;
+  });
 
   setOptions(
     $("grade-subject"),
@@ -612,27 +810,16 @@ function updateGradeSubjectOptions() {
   );
 }
 
-// NORMALIZE GRADE LEVEL
-// For example, "Grade 7", "grade 7", and "7" are treated as equivalent.
-
-function normalizeGradeLevel(value) {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/^grade\s*/, "")
-    .replace(/\s+/g, "");
-}
-
-// CORRECTED STUDENT DROPDOWN
-
 function updateGradeStudentOptions() {
   const gradeLevel = $("grade-level-filter")?.value ?? "";
 
   const filteredStudents = students.filter((student) => {
     if (!gradeLevel) return true;
 
-    return normalizeGradeLevel(student.grade_level) ===
-      normalizeGradeLevel(gradeLevel);
+    return (
+      normalizeGradeLevel(student.grade_level) ===
+      normalizeGradeLevel(gradeLevel)
+    );
   });
 
   setOptions(
@@ -640,10 +827,13 @@ function updateGradeStudentOptions() {
     filteredStudents,
     "id",
     (student) =>
-      `${student.student_id || "No ID"} — ${student.last_name}, ${student.first_name}` +
-      (student.grade_level
-        ? ` (Grade ${String(student.grade_level).replace(/^grade\s*/i, "")})`
-        : ""),
+      `${student.student_id || "No ID"} — ` +
+      `${student.last_name}, ${student.first_name}` +
+      (
+        student.grade_level
+          ? ` (Grade ${String(student.grade_level).replace(/^grade\s*/i, "")})`
+          : ""
+      ),
     filteredStudents.length
       ? "Select student"
       : "No students found for this grade level"
@@ -663,7 +853,10 @@ function updateGradeStudentOptions() {
   }
 }
 
-$("grade-term").addEventListener("change", updateGradeSubjectOptions);
+$("grade-term").addEventListener(
+  "change",
+  updateGradeSubjectOptions
+);
 
 $("grade-level-filter").addEventListener("change", () => {
   updateGradeSubjectOptions();
@@ -674,12 +867,17 @@ $("grade-form").addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (currentProfile?.role !== "admin") {
-    showMessage($("grade-message"), "Administrator access is required.", true);
+    showMessage(
+      $("grade-message"),
+      "Administrator access is required.",
+      true
+    );
     return;
   }
 
   const button = $("save-grade-button");
   button.disabled = true;
+
   showMessage($("grade-message"), "Saving grade...");
 
   try {
@@ -707,23 +905,52 @@ $("grade-form").addEventListener("submit", async (event) => {
     }
 
     const subject = subjects.find(
-      (item) => String(item.id) === subjectId
+      (item) => String(item.id) === String(subjectId)
     );
 
     const student = students.find(
-      (item) => item.id === studentId
+      (item) => String(item.id) === String(studentId)
     );
 
     if (
       !subject ||
       !student ||
-      String(subject.term_id) !== termId ||
+      String(subject.term_id) !== String(termId) ||
       normalizeGradeLevel(subject.grade_level) !==
         normalizeGradeLevel(student.grade_level)
     ) {
       showMessage(
         $("grade-message"),
         "The selected term, subject, and student do not match.",
+        true
+      );
+      return;
+    }
+
+    // Confirm that the student is enrolled in the subject.
+    const { data: enrollment, error: enrollmentError } =
+      await supabaseClient
+        .from("student_subjects")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("subject_id", subjectId)
+        .maybeSingle();
+
+    if (enrollmentError) {
+      console.error("Enrollment verification error:", enrollmentError);
+
+      showMessage(
+        $("grade-message"),
+        "Could not verify student enrollment. Check the student_subjects table and its RLS policies.",
+        true
+      );
+      return;
+    }
+
+    if (!enrollment) {
+      showMessage(
+        $("grade-message"),
+        "This student is not enrolled in the selected subject. Check the automatic enrollment setup.",
         true
       );
       return;
@@ -739,24 +966,39 @@ $("grade-form").addEventListener("submit", async (event) => {
           updated_by: currentUser.id,
           updated_at: new Date().toISOString()
         },
-        { onConflict: "student_id,subject_id" }
+        {
+          onConflict: "student_id,subject_id"
+        }
       );
 
     if (error) {
       console.error("Save grade error:", error);
-      showMessage($("grade-message"), error.message, true);
+
+      showMessage(
+        $("grade-message"),
+        `Could not save grade: ${error.message}`,
+        true
+      );
       return;
     }
 
     showMessage(
       $("grade-message"),
-      `Grade saved. Evaluation: ${gradeEvaluation(grade)}.`
+      `Grade saved successfully. Evaluation: ${gradeEvaluation(grade)}.`
     );
 
     $("numerical-grade").value = "";
     updateGradeEvaluation();
 
     await loadAdminGrades();
+  } catch (error) {
+    console.error("Save grade error:", error);
+
+    showMessage(
+      $("grade-message"),
+      `An error occurred: ${error.message}`,
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -777,7 +1019,9 @@ async function loadGradeEntryData() {
   updateGradeStudentOptions();
 }
 
-// DISPLAY SAVED GRADES FOR ADMINISTRATORS
+// ==================================================
+// ADMIN: DISPLAY SAVED GRADES
+// ==================================================
 
 async function loadAdminGrades() {
   if (currentProfile?.role !== "admin") return;
@@ -794,12 +1038,14 @@ async function loadAdminGrades() {
 
   if (error) {
     console.error("Load grades error:", error);
+
     container.textContent =
-      "Could not load grades. Check database permissions.";
+      `Could not load grades: ${error.message}`;
     return;
   }
 
   grades = data || [];
+
   renderAdminGrades();
 }
 
@@ -808,7 +1054,8 @@ function renderAdminGrades() {
   if (!container) return;
 
   if (!grades.length) {
-    container.textContent = "No grades have been recorded yet.";
+    container.textContent =
+      "No grades have been recorded yet.";
     return;
   }
 
@@ -829,9 +1076,17 @@ function renderAdminGrades() {
         </thead>
         <tbody>
           ${grades.map((item) => {
-            const student = students.find((s) => s.id === item.student_id);
-            const subject = subjects.find((s) => s.id === item.subject_id);
-            const term = terms.find((t) => t.id === subject?.term_id);
+            const student = students.find(
+              (s) => String(s.id) === String(item.student_id)
+            );
+
+            const subject = subjects.find(
+              (s) => String(s.id) === String(item.subject_id)
+            );
+
+            const term = terms.find(
+              (t) => String(t.id) === String(subject?.term_id)
+            );
 
             return `
               <tr>
@@ -842,7 +1097,9 @@ function renderAdminGrades() {
                     : "Unknown student"
                 )}</td>
                 <td>${escapeHTML(
-                  subject?.grade_level || student?.grade_level || "—"
+                  subject?.grade_level ||
+                  student?.grade_level ||
+                  "—"
                 )}</td>
                 <td>${escapeHTML(term?.school_year || "Unknown")}</td>
                 <td>${escapeHTML(term?.term_name || "Unknown")}</td>
@@ -858,119 +1115,196 @@ function renderAdminGrades() {
   `;
 }
 
-// STUDENT VIEW: OWN GRADES ONLY
+// ==================================================
+// STUDENT: DISPLAY OWN ENROLLED SUBJECTS AND GRADES
+// ==================================================
 
 async function loadStudentGrades() {
-  if (currentProfile?.role !== "student") return;
+  if (
+    currentProfile?.role !== "student" ||
+    !currentUser
+  ) {
+    return;
+  }
 
   const container = $("student-grades-list");
   if (!container) return;
 
-  container.textContent = "Loading your grades...";
+  container.textContent = "Loading your subjects and grades...";
 
-  const { data: gradeData, error: gradeError } = await supabaseClient
-    .from("student_grades")
-    .select("id, subject_id, grade, updated_at")
-    .eq("student_id", currentUser.id)
-    .order("updated_at", { ascending: false });
+  try {
+    // Load subjects in which this student is enrolled.
+    const { data: enrollmentData, error: enrollmentError } =
+      await supabaseClient
+        .from("student_subjects")
+        .select("subject_id")
+        .eq("student_id", currentUser.id);
 
-  if (gradeError) {
-    console.error("Load student grades error:", gradeError);
+    if (enrollmentError) {
+      console.error("Load enrollments error:", enrollmentError);
 
-    container.textContent =
-      "Your grades could not be loaded. Please contact the school administrator.";
-    return;
-  }
-
-  if (!gradeData || gradeData.length === 0) {
-    container.textContent = "No grades have been recorded yet.";
-    return;
-  }
-
-  const subjectIds = [...new Set(gradeData.map((item) => item.subject_id))];
-
-  const { data: subjectData, error: subjectError } = await supabaseClient
-    .from("subjects")
-    .select("id, term_id, subject_name, grade_level")
-    .in("id", subjectIds);
-
-  if (subjectError) {
-    console.error("Load student subjects error:", subjectError);
-    container.textContent = "Could not load subject details.";
-    return;
-  }
-
-  const studentSubjects = subjectData || [];
-  const termIds = [...new Set(studentSubjects.map((item) => item.term_id))];
-
-  let studentTerms = [];
-
-  if (termIds.length) {
-    const { data: termData, error: termError } = await supabaseClient
-      .from("academic_terms")
-      .select("id, term_name, school_year")
-      .in("id", termIds);
-
-    if (termError) {
-      console.error("Load student terms error:", termError);
-      container.textContent = "Could not load academic term details.";
+      container.textContent =
+        "Your subjects could not be loaded. Please contact the school administrator.";
       return;
     }
 
-    studentTerms = termData || [];
+    const subjectIds = [
+      ...new Set(
+        (enrollmentData || []).map((item) => item.subject_id)
+      )
+    ];
+
+    if (subjectIds.length === 0) {
+      container.textContent =
+        "You are not enrolled in any subjects yet.";
+      return;
+    }
+
+    // Load the enrolled subjects.
+    const { data: subjectData, error: subjectError } =
+      await supabaseClient
+        .from("subjects")
+        .select("id, term_id, subject_name, grade_level")
+        .in("id", subjectIds)
+        .order("subject_name");
+
+    if (subjectError) {
+      console.error("Load student subjects error:", subjectError);
+
+      container.textContent =
+        "Could not load your subject details.";
+      return;
+    }
+
+    const studentSubjects = subjectData || [];
+
+    const termIds = [
+      ...new Set(studentSubjects.map((item) => item.term_id))
+    ];
+
+    let studentTerms = [];
+
+    if (termIds.length > 0) {
+      const { data: termData, error: termError } =
+        await supabaseClient
+          .from("academic_terms")
+          .select("id, term_name, school_year")
+          .in("id", termIds);
+
+      if (termError) {
+        console.error("Load student terms error:", termError);
+
+        container.textContent =
+          "Could not load academic term details.";
+        return;
+      }
+
+      studentTerms = termData || [];
+    }
+
+    // Load grades belonging to the logged-in student.
+    const { data: gradeData, error: gradeError } =
+      await supabaseClient
+        .from("student_grades")
+        .select("subject_id, grade, updated_at")
+        .eq("student_id", currentUser.id);
+
+    if (gradeError) {
+      console.error("Load student grades error:", gradeError);
+
+      container.textContent =
+        "Your grades could not be loaded. Please contact the school administrator.";
+      return;
+    }
+
+    const studentGrades = gradeData || [];
+
+    // Show every enrolled subject, including subjects without grades.
+    container.innerHTML = `
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>School Year</th>
+              <th>Term</th>
+              <th>Subject</th>
+              <th>Grade</th>
+              <th>Evaluation</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${studentSubjects.map((subject) => {
+              const term = studentTerms.find(
+                (item) =>
+                  String(item.id) === String(subject.term_id)
+              );
+
+              const gradeRecord = studentGrades.find(
+                (item) =>
+                  String(item.subject_id) === String(subject.id)
+              );
+
+              const grade = gradeRecord?.grade ?? null;
+
+              return `
+                <tr>
+                  <td>${escapeHTML(term?.school_year || "Unknown")}</td>
+                  <td>${escapeHTML(term?.term_name || "Unknown")}</td>
+                  <td>${escapeHTML(subject.subject_name)}</td>
+                  <td>${formatGrade(grade)}</td>
+                  <td>${escapeHTML(gradeEvaluation(grade))}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (error) {
+    console.error("Student dashboard error:", error);
+
+    container.textContent =
+      "An error occurred while loading your dashboard.";
   }
-
-  container.innerHTML = `
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>School Year</th>
-            <th>Term</th>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Evaluation</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${gradeData.map((item) => {
-            const subject = studentSubjects.find(
-              (s) => s.id === item.subject_id
-            );
-
-            const term = studentTerms.find(
-              (t) => t.id === subject?.term_id
-            );
-
-            return `
-              <tr>
-                <td>${escapeHTML(term?.school_year || "Unknown")}</td>
-                <td>${escapeHTML(term?.term_name || "Unknown")}</td>
-                <td>${escapeHTML(subject?.subject_name || "Unknown")}</td>
-                <td>${formatGrade(item.grade)}</td>
-                <td>${escapeHTML(gradeEvaluation(item.grade))}</td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
 }
 
+// ==================================================
 // REFRESH BUTTONS
+// ==================================================
 
-$("refresh-subjects-button")?.addEventListener("click", async () => {
-  await loadTermsAndSubjects();
-  showMessage($("subject-message"), "Subjects refreshed.");
-});
+$("refresh-subjects-button")?.addEventListener(
+  "click",
+  async () => {
+    if (currentProfile?.role !== "admin") return;
 
-$("refresh-grades-button")?.addEventListener("click", async () => {
-  await loadAdminData();
-  await loadAdminGrades();
-});
+    await loadTermsAndSubjects();
 
+    showMessage(
+      $("subject-message"),
+      "Subjects refreshed."
+    );
+  }
+);
+
+$("refresh-grades-button")?.addEventListener(
+  "click",
+  async () => {
+    if (currentProfile?.role !== "admin") return;
+
+    await loadTermsAndSubjects();
+    await loadStudents();
+    await loadAdminGrades();
+
+    showMessage(
+      $("grade-message"),
+      "Grade records refreshed."
+    );
+  }
+);
+
+// ==================================================
 // AUTHENTICATION STATE
+// ==================================================
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_OUT" || !session) {
@@ -978,6 +1312,8 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// RESTORE SESSION
-
-loadDashboard();
+// Restore the user's session when the page opens.
+loadDashboard().catch((error) => {
+  console.error("Dashboard initialization error:", error);
+  showLoggedOut("Could not load the dashboard. Please sign in again.");
+});
