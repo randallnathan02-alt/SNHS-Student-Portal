@@ -533,7 +533,6 @@ $("create-term-form").addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
-
 // ==================================================
 // SUBJECTS AND AUTOMATIC ENROLLMENT
 // ==================================================
@@ -1011,8 +1010,7 @@ $("grade-form").addEventListener("submit", async (event) => {
       );
       return;
     }
-
-    const { data: enrollment, error: enrollmentError } =
+        const { data: enrollment, error: enrollmentError } =
       await supabaseClient
         .from("student_subjects")
         .select("id")
@@ -1308,15 +1306,11 @@ if (gradesList) {
 
 // ==================================================
 // STUDENT: DISPLAY OWN ENROLLED SUBJECTS AND GRADES
+// FIX: INCLUDE GRADED SUBJECTS EVEN IF ENROLLMENT IS MISSING
 // ==================================================
 
 async function loadStudentGrades() {
-  if (
-    currentProfile?.role !== "student" ||
-    !currentUser
-  ) {
-    return;
-  }
+  if (currentProfile?.role !== "student" || !currentUser) return;
 
   const container = $("student-grades-list");
   if (!container) return;
@@ -1324,29 +1318,52 @@ async function loadStudentGrades() {
   container.textContent = "Loading your subjects and grades...";
 
   try {
-    const { data: enrollmentData, error: enrollmentError } =
-      await supabaseClient
+    // Fetch enrollment records and grade records independently.
+    const [
+      { data: enrollmentData, error: enrollmentError },
+      { data: gradeData, error: gradeError }
+    ] = await Promise.all([
+      supabaseClient
         .from("student_subjects")
         .select("subject_id")
-        .eq("student_id", currentUser.id);
+        .eq("student_id", currentUser.id),
+
+      supabaseClient
+        .from("student_grades")
+        .select("subject_id, grade, updated_at")
+        .eq("student_id", currentUser.id)
+    ]);
 
     if (enrollmentError) {
       console.error("Load enrollments error:", enrollmentError);
 
       container.textContent =
-        "Your subjects could not be loaded. Please contact the school administrator.";
+        `Your enrollment list could not be loaded: ${enrollmentError.message}`;
       return;
     }
 
+    if (gradeError) {
+      console.error("Load student grades error:", gradeError);
+
+      container.textContent =
+        `Your grades could not be loaded: ${gradeError.message}. ` +
+        "Please contact the school administrator to check grade-view permissions.";
+      return;
+    }
+
+    const studentGrades = gradeData || [];
+
+    // Combine enrolled subjects with subjects that already have grades.
     const subjectIds = [
-      ...new Set(
-        (enrollmentData || []).map((item) => item.subject_id)
-      )
+      ...new Set([
+        ...(enrollmentData || []).map((item) => item.subject_id),
+        ...studentGrades.map((item) => item.subject_id)
+      ].filter((id) => id !== null && id !== undefined))
     ];
 
     if (subjectIds.length === 0) {
       container.textContent =
-        "You are not enrolled in any subjects yet.";
+        "You are not enrolled in any subjects and no grades have been posted yet.";
       return;
     }
 
@@ -1361,14 +1378,18 @@ async function loadStudentGrades() {
       console.error("Load student subjects error:", subjectError);
 
       container.textContent =
-        "Could not load your subject details.";
+        `Could not load subject details: ${subjectError.message}`;
       return;
     }
 
     const studentSubjects = subjectData || [];
 
     const termIds = [
-      ...new Set(studentSubjects.map((item) => item.term_id))
+      ...new Set(
+        studentSubjects
+          .map((item) => item.term_id)
+          .filter((id) => id !== null && id !== undefined)
+      )
     ];
 
     let studentTerms = [];
@@ -1384,29 +1405,14 @@ async function loadStudentGrades() {
         console.error("Load student terms error:", termError);
 
         container.textContent =
-          "Could not load academic term details.";
+          `Could not load academic term details: ${termError.message}`;
         return;
       }
 
       studentTerms = termData || [];
     }
 
-    const { data: gradeData, error: gradeError } =
-      await supabaseClient
-        .from("student_grades")
-        .select("subject_id, grade, updated_at")
-        .eq("student_id", currentUser.id);
-
-    if (gradeError) {
-      console.error("Load student grades error:", gradeError);
-
-      container.textContent =
-        "Your grades could not be loaded. Please contact the school administrator.";
-      return;
-    }
-
-    const studentGrades = gradeData || [];
-
+    // Show all enrolled subjects and all subjects with saved grades.
     container.innerHTML = `
       <div class="table-container">
         <table>
@@ -1422,13 +1428,11 @@ async function loadStudentGrades() {
           <tbody>
             ${studentSubjects.map((subject) => {
               const term = studentTerms.find(
-                (item) =>
-                  String(item.id) === String(subject.term_id)
+                (item) => String(item.id) === String(subject.term_id)
               );
 
               const gradeRecord = studentGrades.find(
-                (item) =>
-                  String(item.subject_id) === String(subject.id)
+                (item) => String(item.subject_id) === String(subject.id)
               );
 
               const grade = gradeRecord?.grade ?? null;
@@ -1437,7 +1441,7 @@ async function loadStudentGrades() {
                 <tr>
                   <td>${escapeHTML(term?.school_year || "Unknown")}</td>
                   <td>${escapeHTML(term?.term_name || "Unknown")}</td>
-                  <td>${escapeHTML(subject.subject_name)}</td>
+                  <td>${escapeHTML(subject.subject_name || "Unnamed subject")}</td>
                   <td>${formatGrade(grade)}</td>
                   <td>${escapeHTML(gradeEvaluation(grade))}</td>
                 </tr>
@@ -1451,7 +1455,7 @@ async function loadStudentGrades() {
     console.error("Student dashboard error:", error);
 
     container.textContent =
-      "An error occurred while loading your dashboard.";
+      `An error occurred while loading your subjects and grades: ${error.message || "Unknown error"}`;
   }
 }
 
