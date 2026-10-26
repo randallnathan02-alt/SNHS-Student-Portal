@@ -15,15 +15,21 @@ const createStudentForm = document.getElementById("create-student-form");
 const createMessage = document.getElementById("create-message");
 
 function showMessage(element, message, isError = false) {
+  if (!element) return;
   element.textContent = message;
   element.classList.toggle("error", isError);
 }
 
 function showLoggedOut(message = "") {
-  loginSection.hidden = false;
-  dashboardSection.hidden = true;
-  document.getElementById("admin-section").hidden = true;
-  document.getElementById("student-section").hidden = true;
+  if (loginSection) loginSection.hidden = false;
+  if (dashboardSection) dashboardSection.hidden = true;
+
+  const adminSection = document.getElementById("admin-section");
+  const studentSection = document.getElementById("student-section");
+
+  if (adminSection) adminSection.hidden = true;
+  if (studentSection) studentSection.hidden = true;
+
   showMessage(loginMessage, message, Boolean(message));
 }
 
@@ -40,25 +46,32 @@ async function loadDashboard() {
 
   const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
-    .select("student_id, first_name, last_name, role, is_active")
+    .select(
+      "student_id, first_name, last_name, role, is_active"
+    )
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError || !profile || profile.is_active !== true) {
     await supabaseClient.auth.signOut();
-    showLoggedOut("Your profile could not be verified. Contact the school administrator.");
+    showLoggedOut(
+      "Your profile could not be verified. Contact the school administrator."
+    );
     return;
   }
 
   loginSection.hidden = true;
   dashboardSection.hidden = false;
+
   document.getElementById("welcome-heading").textContent =
     `Welcome, ${profile.first_name}`;
+
   document.getElementById("account-role").textContent =
     profile.role === "admin" ? "Administrator" : "Student";
 
   document.getElementById("admin-section").hidden =
     profile.role !== "admin";
+
   document.getElementById("student-section").hidden =
     profile.role !== "student";
 
@@ -69,6 +82,7 @@ async function loadDashboard() {
   }
 }
 
+// LOGIN: administrators use email; students use Student ID.
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -77,17 +91,21 @@ loginForm.addEventListener("submit", async (event) => {
   showMessage(loginMessage, "Signing in...");
 
   try {
-    const studentId = document.getElementById("student-id").value.trim();
+    const loginId = document.getElementById("student-id").value.trim();
     const password = document.getElementById("password").value;
 
-    if (!studentId || !password) {
-      showMessage(loginMessage, "Enter your Student ID and password.", true);
+    if (!loginId || !password) {
+      showMessage(
+        loginMessage,
+        "Enter your Student ID or administrator email and password.",
+        true
+      );
       return;
     }
 
-    // Student accounts use the same synthetic email format as the
-    // create-student Edge Function.
-    const email = `${studentId.toLowerCase()}@students.snhs.invalid`;
+    const email = loginId.includes("@")
+      ? loginId.toLowerCase()
+      : `${loginId.toLowerCase()}@students.snhs.invalid`;
 
     const { error } = await supabaseClient.auth.signInWithPassword({
       email,
@@ -95,23 +113,38 @@ loginForm.addEventListener("submit", async (event) => {
     });
 
     if (error) {
-      showMessage(loginMessage, "Sign-in failed. Check your ID and password.", true);
+      console.error("Login error:", error.message);
+      showMessage(
+        loginMessage,
+        "Sign-in failed. Check your login ID and password.",
+        true
+      );
       return;
     }
 
     await loadDashboard();
-  } catch {
-    showMessage(loginMessage, "A connection error occurred. Please try again.", true);
+  } catch (error) {
+    console.error("Login connection error:", error);
+    showMessage(
+      loginMessage,
+      "A connection error occurred. Please try again.",
+      true
+    );
   } finally {
     button.disabled = false;
   }
 });
 
-document.getElementById("logout-button").addEventListener("click", async () => {
-  await supabaseClient.auth.signOut();
-  showLoggedOut("You have signed out.");
-});
+// LOGOUT
+document.getElementById("logout-button").addEventListener(
+  "click",
+  async () => {
+    await supabaseClient.auth.signOut();
+    showLoggedOut("You have signed out.");
+  }
+);
 
+// CREATE STUDENT ACCOUNT: administrator only.
 createStudentForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -120,13 +153,19 @@ createStudentForm.addEventListener("submit", async (event) => {
   showMessage(createMessage, "Creating student account...");
 
   try {
-    const { data: sessionData, error: sessionError } =
-      await supabaseClient.auth.getSession();
+    const {
+      data: sessionData,
+      error: sessionError
+    } = await supabaseClient.auth.getSession();
 
     const accessToken = sessionData.session?.access_token;
 
     if (sessionError || !accessToken) {
-      showMessage(createMessage, "Please sign in again as administrator.", true);
+      showMessage(
+        createMessage,
+        "Please sign in again as administrator.",
+        true
+      );
       return;
     }
 
@@ -136,8 +175,23 @@ createStudentForm.addEventListener("submit", async (event) => {
       last_name: document.getElementById("last-name").value.trim(),
       grade_level: document.getElementById("grade-level").value.trim(),
       section: document.getElementById("section").value.trim(),
-      temporary_password: document.getElementById("temporary-password").value
+      temporary_password:
+        document.getElementById("temporary-password").value
     };
+
+    if (
+      !payload.student_id ||
+      !payload.first_name ||
+      !payload.last_name ||
+      !payload.temporary_password
+    ) {
+      showMessage(
+        createMessage,
+        "Please complete the Student ID, first name, last name, and temporary password.",
+        true
+      );
+      return;
+    }
 
     const response = await fetch(
       `${SUPABASE_URL}/functions/v1/create-student`,
@@ -155,24 +209,39 @@ createStudentForm.addEventListener("submit", async (event) => {
     const result = await response.json();
 
     if (!response.ok) {
-      showMessage(createMessage, result.error || "Could not create account.", true);
+      console.error("Create student error:", result.error);
+      showMessage(
+        createMessage,
+        result.error || "Could not create student account.",
+        true
+      );
       return;
     }
 
-    showMessage(createMessage, `Student account created: ${result.student_id}`);
+    showMessage(
+      createMessage,
+      `Student account created successfully: ${result.student_id}`
+    );
+
     createStudentForm.reset();
-  } catch {
-    showMessage(createMessage, "Connection error. Please try again.", true);
+  } catch (error) {
+    console.error("Create student connection error:", error);
+    showMessage(
+      createMessage,
+      "Connection error. Please try again.",
+      true
+    );
   } finally {
     button.disabled = false;
   }
 });
 
+// Respond to sign-out events.
 supabaseClient.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_OUT" || !session) {
     showLoggedOut();
   }
 });
 
-// Restore an existing session when the page loads.
+// Restore the existing login session when the page loads.
 loadDashboard();
