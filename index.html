@@ -4,56 +4,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Portal | Student Access</title>
+  <title>SNHS Student Portal</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
   <header class="site-header">
-    <div class="brand">
-      <div class="logo">SP</div>
-      <div>
-        <h1>STUDENT PORTAL</h1>
-        <p>Student Access and Information System</p>
-      </div>
+    <div class="school-mark">SNHS</div>
+    <div>
+      <h1>SNHS Student Portal</h1>
+      <p>Student Academic Information System</p>
     </div>
   </header>
 
-  <main class="page">
-    <section class="welcome">
-      <p class="eyebrow">STUDENT SERVICES</p>
-      <h2>Welcome to the Student Portal</h2>
-      <p>Access your academic information, class schedule,
-        enrollment details, and other student services.</p>
-    </section>
+  <main class="container">
+    <section id="login-section" class="panel">
+      <h2>Welcome</h2>
+      <p>Sign in using your Student ID and password.</p>
 
-    <section class="login-card">
-      <h2>Student Login</h2>
-      <p class="muted">Sign in to access your account.</p>
-
-      <form id="loginForm">
-        <label for="studentId">Student ID</label>
-        <input id="studentId" type="text"
-          placeholder="Enter your student ID" required>
+      <form id="login-form">
+        <label for="student-id">Student ID</label>
+        <input id="student-id" type="text" autocomplete="username"
+          maxlength="50" required>
 
         <label for="password">Password</label>
         <input id="password" type="password"
-          placeholder="Enter your password" required>
+          autocomplete="current-password" required>
 
-        <button type="submit">Sign In</button>
-        <p id="message" role="status"></p>
+        <button type="submit" id="login-button">Sign In</button>
       </form>
 
-      <p class="demo-note">
-        Demonstration interface only. Authentication is not yet
-        connected.
-      </p>
+      <p id="login-message" class="message" role="status"></p>
+    </section>
+
+    <section id="dashboard-section" class="panel" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <h2 id="welcome-heading">Dashboard</h2>
+          <p id="account-role"></p>
+        </div>
+        <button id="logout-button" class="secondary-button" type="button">
+          Sign Out
+        </button>
+      </div>
+
+      <section id="admin-section" hidden>
+        <h3>Create Student Account</h3>
+        <p>Create an account for a student using a temporary password.
+          Give that password to the student privately.</p>
+
+        <form id="create-student-form">
+          <label for="new-student-id">Student ID</label>
+          <input id="new-student-id" maxlength="50" required>
+
+          <label for="first-name">First Name</label>
+          <input id="first-name" maxlength="100" required>
+
+          <label for="last-name">Last Name</label>
+          <input id="last-name" maxlength="100" required>
+
+          <label for="grade-level">Grade Level</label>
+          <input id="grade-level" maxlength="50">
+
+          <label for="section">Section</label>
+          <input id="section" maxlength="100">
+
+          <label for="temporary-password">Temporary Password</label>
+          <input id="temporary-password" type="password"
+            minlength="12" maxlength="128" autocomplete="new-password" required>
+          <p class="help-text">
+            Use a unique temporary password of at least 12 characters.
+          </p>
+
+          <button type="submit" id="create-student-button">
+            Create Student Account
+          </button>
+        </form>
+
+        <p id="create-message" class="message" role="status"></p>
+      </section>
+
+      <section id="student-section" hidden>
+        <h3>Student Dashboard</h3>
+        <p id="student-details"></p>
+        <p>Your account is signed in. Student records and other portal
+          features can be added after login is tested.</p>
+      </section>
     </section>
   </main>
 
   <footer>
-    <p>Student Portal &copy; 2026 | Academic Services</p>
+    <p>SNHS Student Portal</p>
   </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>
