@@ -19,14 +19,15 @@
   </header>
 
   <main class="container">
+    <!-- LOGIN -->
     <section id="login-section" class="panel">
       <h2>Welcome</h2>
-      <p>Sign in using your Student ID and password.</p>
+      <p>Sign in using your Student ID or administrator email.</p>
 
       <form id="login-form">
-        <label for="student-id">Student ID</label>
-        <input id="student-id" type="text" autocomplete="username"
-          maxlength="50" required>
+        <label for="student-id">Student ID / Administrator Email</label>
+        <input id="student-id" type="text"
+          autocomplete="username" maxlength="100" required>
 
         <label for="password">Password</label>
         <input id="password" type="password"
@@ -34,10 +35,10 @@
 
         <button type="submit" id="login-button">Sign In</button>
       </form>
-
       <p id="login-message" class="message" role="status"></p>
     </section>
 
+    <!-- DASHBOARD -->
     <section id="dashboard-section" class="panel" hidden>
       <div class="dashboard-heading">
         <div>
@@ -49,47 +50,190 @@
         </button>
       </div>
 
+      <!-- ADMIN DASHBOARD -->
       <section id="admin-section" hidden>
-        <h3>Create Student Account</h3>
-        <p>Create an account for a student using a temporary password.
-          Give that password to the student privately.</p>
+        <h2>Administrator Dashboard</h2>
 
-        <form id="create-student-form">
-          <label for="new-student-id">Student ID</label>
-          <input id="new-student-id" maxlength="50" required>
+        <nav id="admin-tabs" class="admin-tabs"
+          aria-label="Administrator sections">
+          <button type="button" class="admin-tab active"
+            data-admin-tab="students">Students</button>
+          <button type="button" class="admin-tab"
+            data-admin-tab="subjects">Subjects &amp; Terms</button>
+          <button type="button" class="admin-tab"
+            data-admin-tab="grades">Grades &amp; Evaluation</button>
+        </nav>
 
-          <label for="first-name">First Name</label>
-          <input id="first-name" maxlength="100" required>
+        <!-- TAB 1: STUDENTS -->
+        <section id="admin-panel-students" class="admin-panel">
+          <h3>Create Student Account</h3>
+          <p>Create an account using a temporary password.
+            Give the password to the student privately.</p>
 
-          <label for="last-name">Last Name</label>
-          <input id="last-name" maxlength="100" required>
+          <form id="create-student-form">
+            <label for="new-student-id">Student ID</label>
+            <input id="new-student-id" maxlength="50" required>
 
-          <label for="grade-level">Grade Level</label>
-          <input id="grade-level" maxlength="50">
+            <label for="first-name">First Name</label>
+            <input id="first-name" maxlength="100" required>
 
-          <label for="section">Section</label>
-          <input id="section" maxlength="100">
+            <label for="last-name">Last Name</label>
+            <input id="last-name" maxlength="100" required>
 
-          <label for="temporary-password">Temporary Password</label>
-          <input id="temporary-password" type="password"
-            minlength="12" maxlength="128" autocomplete="new-password" required>
-          <p class="help-text">
-            Use a unique temporary password of at least 12 characters.
-          </p>
+            <label for="grade-level">Grade Level</label>
+            <input id="grade-level" maxlength="50"
+              placeholder="e.g. Grade 7">
 
-          <button type="submit" id="create-student-button">
-            Create Student Account
-          </button>
-        </form>
+            <label for="section">Section</label>
+            <input id="section" maxlength="100"
+              placeholder="e.g. Mabini">
 
-        <p id="create-message" class="message" role="status"></p>
+            <label for="temporary-password">Temporary Password</label>
+            <input id="temporary-password" type="password"
+              minlength="12" maxlength="128"
+              autocomplete="new-password" required>
+            <p class="help-text">
+              Use a unique temporary password of at least 12 characters.
+            </p>
+
+            <button type="submit" id="create-student-button">
+              Create Student Account
+            </button>
+          </form>
+          <p id="create-message" class="message" role="status"></p>
+        </section>
+
+        <!-- TAB 2: SUBJECTS AND TERMS -->
+        <section id="admin-panel-subjects" class="admin-panel" hidden>
+          <h3>Academic Terms</h3>
+          <p>Create the three terms for each school year.</p>
+
+          <form id="create-term-form">
+            <label for="term-name">Term</label>
+            <select id="term-name" required>
+              <option value="">Select term</option>
+              <option value="First Term">First Term</option>
+              <option value="Second Term">Second Term</option>
+              <option value="Third Term">Third Term</option>
+            </select>
+
+            <label for="school-year">School Year</label>
+            <input id="school-year" placeholder="e.g. 2026-2027"
+              maxlength="20" required>
+
+            <button type="submit" id="create-term-button">
+              Save Academic Term
+            </button>
+          </form>
+          <p id="term-message" class="message" role="status"></p>
+
+          <h3>Offer a Subject</h3>
+          <form id="create-subject-form">
+            <label for="subject-term">Academic Term</label>
+            <select id="subject-term" required>
+              <option value="">Select school year and term</option>
+            </select>
+
+            <label for="subject-grade-level">Grade Level</label>
+            <input id="subject-grade-level"
+              placeholder="e.g. Grade 7" maxlength="50" required>
+
+            <label for="subject-name">Subject Name</label>
+            <input id="subject-name"
+              placeholder="e.g. Mathematics" maxlength="150" required>
+
+            <button type="submit" id="create-subject-button">
+              Add Subject
+            </button>
+          </form>
+          <p id="subject-message" class="message" role="status"></p>
+
+          <h3>Existing Subjects</h3>
+          <button type="button" id="refresh-subjects-button"
+            class="secondary-button">Refresh Subjects</button>
+          <div id="subjects-list" class="table-container">
+            <p>Subjects will appear here.</p>
+          </div>
+        </section>
+
+        <!-- TAB 3: GRADES AND EVALUATION -->
+        <section id="admin-panel-grades" class="admin-panel" hidden>
+          <h3>Encode Student Grade</h3>
+          <p>Select the academic term, subject, and student.
+            The evaluation will be calculated automatically.</p>
+
+          <form id="grade-form">
+            <label for="grade-term">Academic Term</label>
+            <select id="grade-term" required>
+              <option value="">Select school year and term</option>
+            </select>
+
+            <label for="grade-level-filter">Grade Level</label>
+            <input id="grade-level-filter"
+              placeholder="e.g. Grade 7" maxlength="50" required>
+
+            <label for="grade-subject">Subject</label>
+            <select id="grade-subject" required>
+              <option value="">Select a subject</option>
+            </select>
+
+            <label for="grade-student">Student</label>
+            <select id="grade-student" required>
+              <option value="">Select a student</option>
+            </select>
+
+            <label for="numerical-grade">Numerical Grade</label>
+            <input id="numerical-grade" type="number"
+              min="0" max="100" step="0.01"
+              placeholder="Enter 0 to 100" required>
+
+            <div class="evaluation-panel" aria-live="polite">
+              <h4>Automatic Evaluation</h4>
+              <p id="grade-evaluation">Enter a grade to see its evaluation.</p>
+            </div>
+
+            <button type="submit" id="save-grade-button">
+              Save Grade
+            </button>
+          </form>
+          <p id="grade-message" class="message" role="status"></p>
+
+          <h3>Saved Grades</h3>
+          <button type="button" id="refresh-grades-button"
+            class="secondary-button">Refresh Grades</button>
+          <div id="grades-list" class="table-container">
+            <p>Saved grades will appear here.</p>
+          </div>
+
+          <h3>Grading Scale</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Numerical Grade</th>
+                  <th>Evaluation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Below 75</td><td>Failed</td></tr>
+                <tr><td>75–79.99</td><td>Fairly Satisfactory</td></tr>
+                <tr><td>80–84.99</td><td>Satisfactory</td></tr>
+                <tr><td>85–89.99</td><td>Very Satisfactory</td></tr>
+                <tr><td>90–100</td><td>Outstanding</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
+      <!-- STUDENT DASHBOARD -->
       <section id="student-section" hidden>
         <h3>Student Dashboard</h3>
         <p id="student-details"></p>
-        <p>Your account is signed in. Student records and other portal
-          features can be added after login is tested.</p>
+        <h3>My Grades</h3>
+        <div id="student-grades-list">
+          <p>Your grades will appear here when student grade viewing is enabled.</p>
+        </div>
       </section>
     </section>
   </main>
