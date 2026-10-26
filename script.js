@@ -150,6 +150,252 @@ function setActiveAdminTab(tabName) {
 }
 
 // ==================================================
+// CLASS ROSTER HTML FALLBACK
+// Creates the class-list interface when index.html does not yet contain it.
+// ==================================================
+
+function ensureClassRosterMarkup() {
+  const studentsPanel = $("admin-panel-students");
+
+  if (!studentsPanel) {
+    console.error(
+      "Cannot create the class list: #admin-panel-students is missing from index.html."
+    );
+    return;
+  }
+
+  if (!$("class-roster-section")) {
+    const rosterSection = document.createElement("section");
+    rosterSection.id = "class-roster-section";
+    rosterSection.className = "portal-card class-roster-section";
+
+    rosterSection.innerHTML = `
+      <style>
+        .class-roster-section, #student-record-panel {
+          margin: 24px 0;
+          padding: 20px;
+          border: 1px solid #dbe3ee;
+          border-radius: 14px;
+          background: #fff;
+        }
+
+        .roster-controls {
+          display: grid;
+          grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+          gap: 12px;
+          margin: 16px 0;
+        }
+
+        .roster-controls select,
+        .roster-controls input {
+          box-sizing: border-box;
+          width: 100%;
+          min-height: 42px;
+          padding: 9px 11px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+        }
+
+        .student-roster-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin: 10px 0;
+          padding: 14px;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+        }
+
+        .student-card-info h4 {
+          margin: 0 0 6px;
+        }
+
+        .student-card-info p {
+          margin: 3px 0;
+        }
+
+        .student-roster-card button,
+        #close-student-record {
+          padding: 9px 13px;
+          border: 0;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+
+        .record-tabs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 16px 0;
+        }
+
+        .record-tabs button {
+          padding: 9px 12px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          background: #f8fafc;
+          cursor: pointer;
+        }
+
+        .record-tabs button.active {
+          background: #1d4ed8;
+          color: white;
+        }
+
+        .record-info-grid,
+        .evaluation-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+          gap: 12px;
+        }
+
+        .record-info-item,
+        .evaluation-stat {
+          padding: 12px;
+          border: 1px solid #e2e8f0;
+          border-radius: 9px;
+          overflow-wrap: anywhere;
+        }
+
+        .record-info-item span,
+        .evaluation-stat span {
+          display: block;
+          color: #64748b;
+          font-size: .88rem;
+          margin-bottom: 5px;
+        }
+
+        .table-container {
+          max-width: 100%;
+          overflow-x: auto;
+        }
+
+        #record-grades-content table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        #record-grades-content th,
+        #record-grades-content td {
+          padding: 9px;
+          border: 1px solid #e2e8f0;
+          text-align: left;
+        }
+
+        .empty-state {
+          padding: 14px;
+          color: #64748b;
+        }
+
+        @media (max-width: 560px) {
+          .student-roster-card {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+        }
+      </style>
+
+      <h3>Class List</h3>
+      <p>
+        Filter students by grade level and section, or search by student ID or name.
+      </p>
+
+      <div class="roster-controls">
+        <select id="roster-grade-filter" aria-label="Filter by grade level">
+          <option value="">All grade levels</option>
+        </select>
+
+        <select id="roster-section-filter" aria-label="Filter by section">
+          <option value="">All sections</option>
+        </select>
+
+        <input
+          id="roster-search"
+          type="search"
+          placeholder="Search student ID or name"
+          aria-label="Search students"
+        >
+      </div>
+
+      <p><strong id="roster-count">Loading students...</strong></p>
+
+      <div id="class-roster-list">
+        <p class="empty-state">Loading students...</p>
+      </div>
+    `;
+
+    const createForm = $("create-student-form");
+
+    if (createForm && createForm.parentNode === studentsPanel) {
+      studentsPanel.insertBefore(rosterSection, createForm);
+    } else {
+      studentsPanel.appendChild(rosterSection);
+    }
+  }
+
+  if (!$("student-record-panel")) {
+    const recordPanel = document.createElement("section");
+    recordPanel.id = "student-record-panel";
+    recordPanel.hidden = true;
+
+    recordPanel.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 id="record-student-name">Student Record</h3>
+          <p id="record-student-meta"></p>
+        </div>
+
+        <button type="button" id="close-student-record">
+          Close Record
+        </button>
+      </div>
+
+      <div class="record-tabs" role="tablist" aria-label="Student record sections">
+        <button
+          type="button"
+          data-record-tab="profile"
+          class="active"
+          role="tab"
+          aria-selected="true"
+        >Profile</button>
+
+        <button
+          type="button"
+          data-record-tab="grades"
+          role="tab"
+          aria-selected="false"
+        >Grades by Subject and Term</button>
+
+        <button
+          type="button"
+          data-record-tab="evaluation"
+          role="tab"
+          aria-selected="false"
+        >Evaluation Summary</button>
+      </div>
+
+      <section id="record-panel-profile" class="record-panel">
+        <div id="record-profile-content" class="record-info-grid"></div>
+      </section>
+
+      <section id="record-panel-grades" class="record-panel" hidden>
+        <div id="record-grades-content"></div>
+      </section>
+
+      <section id="record-panel-evaluation" class="record-panel" hidden>
+        <div id="record-evaluation-content" class="evaluation-grid"></div>
+      </section>
+    `;
+
+    studentsPanel.appendChild(recordPanel);
+  }
+}
+
+// Build the roster markup before its event listeners are registered below.
+ensureClassRosterMarkup();
+
+// ==================================================
 // LOGIN AND DASHBOARD
 // ==================================================
 
@@ -211,6 +457,7 @@ async function loadDashboard() {
 
     await loadStudentGrades();
   } else {
+    ensureClassRosterMarkup();
     setActiveAdminTab("students");
     await loadAdminData();
   }
@@ -434,22 +681,36 @@ async function loadStudents() {
       "id, student_id, first_name, last_name, role, is_active, grade_level, section"
     )
     .eq("role", "student")
-    .eq("is_active", true)
     .order("last_name", { ascending: true });
 
   if (error) {
     console.error("Load students error:", error);
+
+    const roster = $("class-roster-list");
+    const count = $("roster-count");
+
+    if (roster) {
+      roster.innerHTML =
+        `<p class="empty-state">Could not load student profiles: ${escapeHTML(error.message)}. Check the profiles table SELECT policy and administrator permissions.</p>`;
+    }
+
+    if (count) count.textContent = "Unable to load students";
+
     showMessage(
       createMessage,
       `Could not load students: ${error.message}`,
       true
     );
+
     students = [];
-    renderClassRoster();
     return;
   }
 
   students = data || [];
+
+  console.log(
+    `SNHS Portal: loaded ${students.length} student profile(s).`
+  );
 
   renderClassRoster();
 
@@ -580,8 +841,11 @@ function renderClassRoster() {
         <p>Student ID: ${escapeHTML(student.student_id || "Not assigned")}</p>
         <p>${escapeHTML(student.grade_level || "No grade level")} · ${escapeHTML(student.section || "No section assigned")}</p>
       </div>
-      <button type="button"
-              data-view-student="${escapeHTML(student.id)}">View Record</button>
+
+      <button
+        type="button"
+        data-view-student="${escapeHTML(student.id)}"
+      >View Record</button>
     </article>
   `).join("");
 }
@@ -624,6 +888,7 @@ document.querySelectorAll("[data-record-tab]").forEach((button) => {
 function setActiveRecordTab(tabName) {
   document.querySelectorAll("[data-record-tab]").forEach((button) => {
     const active = button.dataset.recordTab === tabName;
+
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
   });
@@ -657,6 +922,7 @@ async function openStudentRecord(student) {
   const recordPanel = $("student-record-panel");
 
   recordPanel.hidden = false;
+
   $("record-student-name").textContent =
     getStudentFullName(student) || "Unnamed student";
 
@@ -677,7 +943,9 @@ async function openStudentRecord(student) {
 
   setActiveRecordTab("profile");
 
-  $("record-grades-content").innerHTML = "<p>Loading student grades...</p>";
+  $("record-grades-content").innerHTML =
+    "<p>Loading student grades...</p>";
+
   $("record-evaluation-content").innerHTML = "";
 
   recordPanel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -698,6 +966,7 @@ async function loadIndividualStudentGrades(student) {
         .from("student_subjects")
         .select("subject_id")
         .eq("student_id", student.id),
+
       supabaseClient
         .from("student_grades")
         .select("subject_id, grade, updated_at")
@@ -708,6 +977,7 @@ async function loadIndividualStudentGrades(student) {
     if (gradeError) throw gradeError;
 
     const studentGrades = gradeData || [];
+
     const subjectIds = [...new Set([
       ...(enrollmentData || []).map((item) => item.subject_id),
       ...studentGrades.map((item) => item.subject_id)
@@ -715,7 +985,7 @@ async function loadIndividualStudentGrades(student) {
 
     if (subjectIds.length === 0) {
       gradesContainer.innerHTML =
-        '<p>No subjects or grades are currently recorded for this student.</p>';
+        "<p>No subjects or grades are currently recorded for this student.</p>";
 
       evaluationContainer.innerHTML = [
         renderEvaluationStat("Recorded Subjects", "0"),
@@ -739,6 +1009,7 @@ async function loadIndividualStudentGrades(student) {
     if (subjectError) throw subjectError;
 
     const studentSubjects = subjectData || [];
+
     const termIds = [...new Set(
       studentSubjects
         .map((subject) => subject.term_id)
@@ -755,6 +1026,7 @@ async function loadIndividualStudentGrades(student) {
           .in("id", termIds);
 
       if (termError) throw termError;
+
       studentTerms = termData || [];
     }
 
@@ -779,7 +1051,7 @@ async function loadIndividualStudentGrades(student) {
 
     if (rows.length === 0) {
       gradesContainer.innerHTML =
-        '<p>Subject details could not be found for this student.</p>';
+        "<p>Subject details could not be found for this student.</p>";
     } else {
       gradesContainer.innerHTML = `
         <table>
@@ -793,6 +1065,7 @@ async function loadIndividualStudentGrades(student) {
               <th>Evaluation</th>
             </tr>
           </thead>
+
           <tbody>
             ${rows.map((row) => `
               <tr>
@@ -817,12 +1090,14 @@ async function loadIndividualStudentGrades(student) {
 
     const passed = numericGrades.filter((grade) => grade >= 75).length;
     const failed = numericGrades.filter((grade) => grade < 75).length;
+
     const ungraded = rows.filter(
       (row) => row.grade === null || row.grade === undefined || row.grade === ""
     ).length;
 
     const average = numericGrades.length
-      ? numericGrades.reduce((total, grade) => total + grade, 0) / numericGrades.length
+      ? numericGrades.reduce((total, grade) => total + grade, 0) /
+        numericGrades.length
       : null;
 
     evaluationContainer.innerHTML = [
@@ -840,9 +1115,10 @@ async function loadIndividualStudentGrades(student) {
       `<p>Unable to load student grades: ${escapeHTML(error.message || "Unknown error")}</p>`;
 
     evaluationContainer.innerHTML =
-      '<p>Evaluation summary is unavailable because the student grades could not be loaded.</p>';
+      "<p>Evaluation summary is unavailable because the student grades could not be loaded.</p>";
   }
 }
+
 // ==================================================
 // ACADEMIC TERMS
 // ==================================================
@@ -857,6 +1133,7 @@ $("create-term-form").addEventListener("submit", async (event) => {
 
   const button = $("create-term-button");
   button.disabled = true;
+
   showMessage($("term-message"), "Saving academic term...");
 
   try {
@@ -877,6 +1154,7 @@ $("create-term-form").addEventListener("submit", async (event) => {
 
     if (error) {
       console.error("Save term error:", error);
+
       showMessage(
         $("term-message"),
         error.code === "23505"
@@ -884,15 +1162,23 @@ $("create-term-form").addEventListener("submit", async (event) => {
           : error.message,
         true
       );
+
       return;
     }
 
     showMessage($("term-message"), "Academic term saved successfully.");
+
     $("create-term-form").reset();
+
     await loadTermsAndSubjects();
   } catch (error) {
     console.error("Save term error:", error);
-    showMessage($("term-message"), `Could not save term: ${error.message}`, true);
+
+    showMessage(
+      $("term-message"),
+      `Could not save term: ${error.message}`,
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -912,6 +1198,7 @@ $("create-subject-form").addEventListener("submit", async (event) => {
 
   const button = $("create-subject-button");
   button.disabled = true;
+
   showMessage($("subject-message"), "Saving subject and enrolling students...");
 
   try {
@@ -936,6 +1223,7 @@ $("create-subject-form").addEventListener("submit", async (event) => {
 
     if (error) {
       console.error("Save subject error:", error);
+
       showMessage(
         $("subject-message"),
         error.code === "23505"
@@ -943,6 +1231,7 @@ $("create-subject-form").addEventListener("submit", async (event) => {
           : `Could not save subject: ${error.message}`,
         true
       );
+
       return;
     }
 
@@ -953,6 +1242,7 @@ $("create-subject-form").addEventListener("submit", async (event) => {
 
     if (countError) {
       console.error("Enrollment count error:", countError);
+
       showMessage(
         $("subject-message"),
         `Subject "${newSubject.subject_name}" was saved. ` +
@@ -974,7 +1264,12 @@ $("create-subject-form").addEventListener("submit", async (event) => {
     await loadAdminGrades();
   } catch (error) {
     console.error("Subject enrollment error:", error);
-    showMessage($("subject-message"), `An error occurred: ${error.message}`, true);
+
+    showMessage(
+      $("subject-message"),
+      `An error occurred: ${error.message}`,
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -991,11 +1286,13 @@ async function loadTermsAndSubjects() {
 
   if (termError) {
     console.error("Load terms error:", termError);
+
     showMessage(
       $("term-message"),
       `Could not load academic terms: ${termError.message}`,
       true
     );
+
     return;
   }
 
@@ -1009,11 +1306,13 @@ async function loadTermsAndSubjects() {
 
   if (subjectError) {
     console.error("Load subjects error:", subjectError);
+
     showMessage(
       $("subject-message"),
       `Could not load subjects: ${subjectError.message}`,
       true
     );
+
     return;
   }
 
@@ -1029,6 +1328,7 @@ async function loadTermsAndSubjects() {
 
   renderSubjects();
   updateGradeSubjectOptions();
+
   await loadGradeEntryData();
 }
 
@@ -1053,6 +1353,7 @@ function renderSubjects() {
             <th>Action</th>
           </tr>
         </thead>
+
         <tbody>
           ${subjects.map((subject) => {
             const term = terms.find(
@@ -1098,6 +1399,7 @@ if (subjectsList) {
     }
 
     const subjectId = button.dataset.subjectId;
+
     const subject = subjects.find(
       (item) => String(item.id) === String(subjectId)
     );
@@ -1147,11 +1449,13 @@ if (subjectsList) {
       await loadAdminGrades();
     } catch (error) {
       console.error("Delete subject error:", error);
+
       showMessage(
         $("subject-message"),
         `Unable to delete subject: ${error.message || "Unknown database error"}`,
         true
       );
+
       await loadTermsAndSubjects();
     } finally {
       button.disabled = false;
@@ -1177,9 +1481,13 @@ function updateGradeEvaluation() {
   }
 
   const result = gradeEvaluation(gradeInput.value);
+
   evaluation.textContent = result;
 
-  evaluation.classList.toggle("evaluation-failed", result === "Failed");
+  evaluation.classList.toggle(
+    "evaluation-failed",
+    result === "Failed"
+  );
 
   evaluation.classList.toggle(
     "evaluation-passed",
@@ -1202,7 +1510,7 @@ function updateGradeSubjectOptions() {
     const gradeMatches =
       !gradeLevel ||
       normalizeGradeLevel(subject.grade_level) ===
-        normalizeGradeLevel(gradeLevel);
+      normalizeGradeLevel(gradeLevel);
 
     return termMatches && gradeMatches;
   });
@@ -1271,6 +1579,7 @@ $("grade-form").addEventListener("submit", async (event) => {
 
   const button = $("save-grade-button");
   button.disabled = true;
+
   showMessage($("grade-message"), "Saving grade...");
 
   try {
@@ -1310,7 +1619,7 @@ $("grade-form").addEventListener("submit", async (event) => {
       !student ||
       String(subject.term_id) !== String(termId) ||
       normalizeGradeLevel(subject.grade_level) !==
-        normalizeGradeLevel(student.grade_level)
+      normalizeGradeLevel(student.grade_level)
     ) {
       showMessage(
         $("grade-message"),
@@ -1330,11 +1639,13 @@ $("grade-form").addEventListener("submit", async (event) => {
 
     if (enrollmentError) {
       console.error("Enrollment verification error:", enrollmentError);
+
       showMessage(
         $("grade-message"),
         "Could not verify student enrollment. Check the student_subjects table and its RLS policies.",
         true
       );
+
       return;
     }
 
@@ -1344,6 +1655,7 @@ $("grade-form").addEventListener("submit", async (event) => {
         "This student is not enrolled in the selected subject. Check the automatic enrollment setup.",
         true
       );
+
       return;
     }
 
@@ -1362,7 +1674,13 @@ $("grade-form").addEventListener("submit", async (event) => {
 
     if (error) {
       console.error("Save grade error:", error);
-      showMessage($("grade-message"), `Could not save grade: ${error.message}`, true);
+
+      showMessage(
+        $("grade-message"),
+        `Could not save grade: ${error.message}`,
+        true
+      );
+
       return;
     }
 
@@ -1377,7 +1695,12 @@ $("grade-form").addEventListener("submit", async (event) => {
     await loadAdminGrades();
   } catch (error) {
     console.error("Save grade error:", error);
-    showMessage($("grade-message"), `An error occurred: ${error.message}`, true);
+
+    showMessage(
+      $("grade-message"),
+      `An error occurred: ${error.message}`,
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -1397,6 +1720,7 @@ async function loadGradeEntryData() {
   updateGradeSubjectOptions();
   updateGradeStudentOptions();
 }
+
 // ==================================================
 // ADMIN: DISPLAY SAVED GRADES
 // ==================================================
@@ -1449,6 +1773,7 @@ function renderAdminGrades() {
             <th>Action</th>
           </tr>
         </thead>
+
         <tbody>
           ${grades.map((item) => {
             const student = students.find(
@@ -1584,6 +1909,7 @@ if (gradesList) {
       await loadAdminGrades();
     } catch (error) {
       console.error("Edit grade error:", error);
+
       showMessage(
         $("grade-message"),
         `Unable to update grade: ${error.message || "Unknown database error"}`,
@@ -1626,16 +1952,20 @@ async function loadStudentGrades() {
 
     if (enrollmentError) {
       console.error("Load enrollments error:", enrollmentError);
+
       container.textContent =
         `Your enrollment list could not be loaded: ${enrollmentError.message}`;
+
       return;
     }
 
     if (gradeError) {
       console.error("Load student grades error:", gradeError);
+
       container.textContent =
         `Your grades could not be loaded: ${gradeError.message}. ` +
         "Please contact the school administrator to check grade-view permissions.";
+
       return;
     }
 
@@ -1651,6 +1981,7 @@ async function loadStudentGrades() {
     if (subjectIds.length === 0) {
       container.textContent =
         "You are not enrolled in any subjects and no grades have been posted yet.";
+
       return;
     }
 
@@ -1663,8 +1994,10 @@ async function loadStudentGrades() {
 
     if (subjectError) {
       console.error("Load student subjects error:", subjectError);
+
       container.textContent =
         `Could not load subject details: ${subjectError.message}`;
+
       return;
     }
 
@@ -1689,8 +2022,10 @@ async function loadStudentGrades() {
 
       if (termError) {
         console.error("Load student terms error:", termError);
+
         container.textContent =
           `Could not load academic term details: ${termError.message}`;
+
         return;
       }
 
@@ -1709,6 +2044,7 @@ async function loadStudentGrades() {
               <th>Evaluation</th>
             </tr>
           </thead>
+
           <tbody>
             ${studentSubjects.map((subject) => {
               const term = studentTerms.find(
@@ -1737,6 +2073,7 @@ async function loadStudentGrades() {
     `;
   } catch (error) {
     console.error("Student dashboard error:", error);
+
     container.textContent =
       `An error occurred while loading your subjects and grades: ${error.message || "Unknown error"}`;
   }
@@ -1750,6 +2087,7 @@ $("refresh-subjects-button")?.addEventListener("click", async () => {
   if (currentProfile?.role !== "admin") return;
 
   await loadTermsAndSubjects();
+
   showMessage($("subject-message"), "Subjects refreshed.");
 });
 
