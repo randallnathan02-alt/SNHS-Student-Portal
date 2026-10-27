@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#123568">
   <title>SNHS Student Portal</title>
-
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js" defer></script>
@@ -13,13 +12,8 @@
 <body>
   <header class="site-header">
     <div class="school-mark">
-      <img src="logo.png.png"
-           alt="Sagay National High School Official Logo"
-           class="school-logo"
-           width="76"
-           height="76">
+      <img src="logo.png.png" alt="Sagay National High School Official Logo" class="school-logo" width="76" height="76">
     </div>
-
     <div class="school-header-text">
       <h1>Sagay National High School</h1>
       <p>Student Academic Information System</p>
@@ -33,20 +27,35 @@
 
       <form id="login-form">
         <label for="student-id">Student ID / Administrator Email</label>
-        <input id="student-id"
-               type="text"
-               autocomplete="username"
-               maxlength="100"
-               required>
+        <input id="student-id" type="text" autocomplete="username" maxlength="100" required>
 
         <label for="password">Password</label>
-        <input id="password"
-               type="password"
-               autocomplete="current-password"
-               required>
+        <input id="password" type="password" autocomplete="current-password" required>
 
         <button type="submit" id="login-button">Sign In</button>
       </form>
+
+      <button type="button" id="show-reset-form" class="text-button">Forgot password? Reset to school default</button>
+
+      <section id="reset-password-section" class="profile-card" hidden>
+        <h3>Reset Student Password</h3>
+        <p>Enter your Student ID, birthdate, and the emergency contact number already recorded in your profile. If verified, your password will be reset to the school default.</p>
+
+        <form id="reset-password-form">
+          <label for="reset-student-id">Student ID</label>
+          <input id="reset-student-id" autocomplete="username" maxlength="50" required>
+
+          <label for="reset-birthdate">Birthdate</label>
+          <input id="reset-birthdate" type="date" required>
+
+          <label for="reset-emergency-phone">Registered emergency contact number</label>
+          <input id="reset-emergency-phone" type="tel" autocomplete="off" maxlength="30" required>
+
+          <button type="submit" id="reset-password-button">Reset to Default Password</button>
+        </form>
+
+        <p id="reset-password-message" class="message" role="status"></p>
+      </section>
 
       <p id="login-message" class="message" role="status"></p>
     </section>
@@ -57,29 +66,16 @@
           <h2 id="welcome-heading">Dashboard</h2>
           <p id="account-role"></p>
         </div>
-
-        <button id="logout-button"
-                class="secondary-button"
-                type="button">Sign Out</button>
+        <button id="logout-button" class="secondary-button" type="button">Sign Out</button>
       </div>
 
       <section id="admin-section" hidden>
         <h2>Administrator Dashboard</h2>
 
-        <nav id="admin-tabs"
-             class="admin-tabs"
-             aria-label="Administrator sections">
-          <button type="button"
-                  class="admin-tab active"
-                  data-admin-tab="students">Students</button>
-
-          <button type="button"
-                  class="admin-tab"
-                  data-admin-tab="subjects">Subjects &amp; Terms</button>
-
-          <button type="button"
-                  class="admin-tab"
-                  data-admin-tab="grades">Grades &amp; Evaluation</button>
+        <nav id="admin-tabs" class="admin-tabs" aria-label="Administrator sections">
+          <button type="button" class="admin-tab active" data-admin-tab="students">Students</button>
+          <button type="button" class="admin-tab" data-admin-tab="subjects">Subjects &amp; Terms</button>
+          <button type="button" class="admin-tab" data-admin-tab="grades">Grades &amp; Evaluation</button>
         </nav>
 
         <section id="admin-panel-students" class="admin-panel">
@@ -103,15 +99,9 @@
             <input id="section" maxlength="100" placeholder="e.g. Mabini">
 
             <label for="temporary-password">Temporary Password</label>
-            <input id="temporary-password"
-                   type="password"
-                   minlength="12"
-                   maxlength="128"
-                   autocomplete="new-password"
-                   required>
+            <input id="temporary-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required>
 
             <p class="help-text">Use a unique temporary password of at least 12 characters.</p>
-
             <button type="submit" id="create-student-button">Create Student Account</button>
           </form>
 
@@ -130,19 +120,15 @@
                   <option value="">All grade levels</option>
                 </select>
               </div>
-
               <div>
                 <label for="roster-section-filter">Section</label>
                 <select id="roster-section-filter">
                   <option value="">All sections</option>
                 </select>
               </div>
-
               <div>
                 <label for="roster-search">Search student</label>
-                <input id="roster-search"
-                       type="search"
-                       placeholder="Name or Student ID">
+                <input id="roster-search" type="search" placeholder="Name or Student ID">
               </div>
             </div>
 
@@ -162,29 +148,13 @@
                   <h3 id="record-student-name">Student Name</h3>
                   <p id="record-student-meta"></p>
                 </div>
-
-                <button type="button"
-                        id="close-student-record"
-                        class="secondary-button">Back to Class List</button>
+                <button type="button" id="close-student-record" class="secondary-button">Back to Class List</button>
               </div>
 
-              <nav id="student-record-tabs"
-                   class="student-record-tabs"
-                   aria-label="Student record sections">
-                <button type="button"
-                        class="record-tab active"
-                        data-record-tab="profile"
-                        aria-selected="true">Profile</button>
-
-                <button type="button"
-                        class="record-tab"
-                        data-record-tab="grades"
-                        aria-selected="false">Grades</button>
-
-                <button type="button"
-                        class="record-tab"
-                        data-record-tab="evaluation"
-                        aria-selected="false">Evaluation</button>
+              <nav id="student-record-tabs" class="student-record-tabs" aria-label="Student record sections">
+                <button type="button" class="record-tab active" data-record-tab="profile" aria-selected="true">Profile</button>
+                <button type="button" class="record-tab" data-record-tab="grades" aria-selected="false">Grades</button>
+                <button type="button" class="record-tab" data-record-tab="evaluation" aria-selected="false">Evaluation</button>
               </nav>
 
               <section id="record-panel-profile" class="record-panel">
@@ -222,11 +192,7 @@
             </select>
 
             <label for="school-year">School Year</label>
-            <input id="school-year"
-                   placeholder="e.g. 2026-2027"
-                   maxlength="20"
-                   required>
-
+            <input id="school-year" placeholder="e.g. 2026-2027" maxlength="20" required>
             <button type="submit" id="create-term-button">Save Academic Term</button>
           </form>
 
@@ -241,27 +207,17 @@
             </select>
 
             <label for="subject-grade-level">Grade Level</label>
-            <input id="subject-grade-level"
-                   placeholder="e.g. Grade 7"
-                   maxlength="50"
-                   required>
+            <input id="subject-grade-level" placeholder="e.g. Grade 7" maxlength="50" required>
 
             <label for="subject-name">Subject Name</label>
-            <input id="subject-name"
-                   placeholder="e.g. Mathematics"
-                   maxlength="150"
-                   required>
-
+            <input id="subject-name" placeholder="e.g. Mathematics" maxlength="150" required>
             <button type="submit" id="create-subject-button">Add Subject</button>
           </form>
 
           <p id="subject-message" class="message" role="status"></p>
 
           <h3>Existing Subjects</h3>
-          <button type="button"
-                  id="refresh-subjects-button"
-                  class="secondary-button">Refresh Subjects</button>
-
+          <button type="button" id="refresh-subjects-button" class="secondary-button">Refresh Subjects</button>
           <div id="subjects-list" class="table-container">
             <p>Subjects will appear here.</p>
           </div>
@@ -278,10 +234,7 @@
             </select>
 
             <label for="grade-level-filter">Grade Level</label>
-            <input id="grade-level-filter"
-                   placeholder="e.g. Grade 7"
-                   maxlength="50"
-                   required>
+            <input id="grade-level-filter" placeholder="e.g. Grade 7" maxlength="50" required>
 
             <label for="grade-subject">Subject</label>
             <select id="grade-subject" required>
@@ -294,13 +247,7 @@
             </select>
 
             <label for="numerical-grade">Numerical Grade</label>
-            <input id="numerical-grade"
-                   type="number"
-                   min="0"
-                   max="100"
-                   step="0.01"
-                   placeholder="Enter 0 to 100"
-                   required>
+            <input id="numerical-grade" type="number" min="0" max="100" step="0.01" placeholder="Enter 0 to 100" required>
 
             <div class="evaluation-panel" aria-live="polite">
               <h4>Automatic Evaluation</h4>
@@ -313,10 +260,7 @@
           <p id="grade-message" class="message" role="status"></p>
 
           <h3>Saved Grades</h3>
-          <button type="button"
-                  id="refresh-grades-button"
-                  class="secondary-button">Refresh Grades</button>
-
+          <button type="button" id="refresh-grades-button" class="secondary-button">Refresh Grades</button>
           <div id="grades-list" class="table-container">
             <p>Saved grades will appear here.</p>
           </div>
@@ -346,7 +290,66 @@
         <h3>Student Dashboard</h3>
         <p id="student-details"></p>
 
-        <h3>My Grades</h3>
+        <section id="student-profile-section" class="profile-card">
+          <h3>My Profile</h3>
+
+          <div class="student-profile-layout">
+            <div class="avatar-column">
+              <img id="student-avatar" class="student-avatar" alt="Student profile picture" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect width='100%25' height='100%25' fill='%23e5e7eb'/%3E%3Ccircle cx='80' cy='58' r='28' fill='%239ca3af'/%3E%3Cpath d='M25 150c5-35 25-52 55-52s50 17 55 52' fill='%239ca3af'/%3E%3C/svg%3E">
+              <label for="profile-picture">Profile picture (JPG, PNG, or WebP; max 2 MB)</label>
+              <input id="profile-picture" type="file" accept="image/jpeg,image/png,image/webp">
+            </div>
+
+            <form id="student-profile-form" class="profile-form">
+              <label for="profile-birthdate">Birthdate</label>
+              <input id="profile-birthdate" type="date" required>
+
+              <label for="profile-blood-type">Blood type</label>
+              <select id="profile-blood-type">
+                <option value="">Select blood type</option>
+                <option>A+</option>
+                <option>A-</option>
+                <option>B+</option>
+                <option>B-</option>
+                <option>AB+</option>
+                <option>AB-</option>
+                <option>O+</option>
+                <option>O-</option>
+                <option>Unknown</option>
+              </select>
+
+              <label for="profile-emergency-name">Emergency contact name</label>
+              <input id="profile-emergency-name" maxlength="120" required>
+
+              <label for="profile-emergency-phone">Emergency contact number</label>
+              <input id="profile-emergency-phone" type="tel" maxlength="30" autocomplete="tel" required>
+
+              <button type="submit" id="save-student-profile">Save Profile Information</button>
+              <p id="student-profile-message" class="message" role="status"></p>
+            </form>
+          </div>
+        </section>
+
+        <section id="student-change-password-section" class="profile-card">
+          <h3>Change Password</h3>
+
+          <form id="student-change-password-form">
+            <label for="current-password">Current password</label>
+            <input id="current-password" type="password" autocomplete="current-password" required>
+
+            <label for="new-password">New password (at least 12 characters)</label>
+            <input id="new-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required>
+
+            <label for="confirm-new-password">Confirm new password</label>
+            <input id="confirm-new-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required>
+
+            <button type="submit" id="change-password-button">Change Password</button>
+          </form>
+
+          <p id="change-password-message" class="message" role="status"></p>
+        </section>
+
+        <h3 id="student-grades-heading">My Grades</h3>
         <div id="student-grades-list">
           <p>Your grades will appear here when student grade viewing is enabled.</p>
         </div>
