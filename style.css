@@ -592,3 +592,132 @@ footer p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =========================================
+   SNHS LOGIN PAGE - SCHOOL PHOTO BACKGROUND
+   ========================================= */
+
+/* Show the photo only while the login section is visible */
+body:has(#login-section:not([hidden])) {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(8, 8, 91, 0.48),
+      rgba(23, 23, 139, 0.24),
+      rgba(244, 246, 252, 0.52)
+    ),
+    url("school-gate.png") center center / cover no-repeat fixed;
+}
+
+/* Give the login screen a balanced, centered layout */
+body:has(#login-section:not([hidden])) .container {
+  width: min(100% - 32px, 460px);
+  margin: auto;
+  padding-top: 32px;
+  padding-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Make the login panel blend into the photograph */
+body:has(#login-section:not([hidden])) #login-section {
+  padding: clamp(24px, 5vw, 38px);
+  background: rgba(255, 255, 255, 0.91);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-top: 4px solid var(--gold);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(8, 8, 91, 0.22);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+/* Refine the welcome heading */
+body:has(#login-section:not([hidden])) #login-section h2 {
+  color: var(--navy);
+  font-size: clamp(25px, 4vw, 31px);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Center the introductory text */
+body:has(#login-section:not([hidden])) #login-section > p:first-of-type {
+  color: #59627b;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* Improve the login fields */
+body:has(#login-section:not([hidden])) #login-form input {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbd2e3;
+  border-radius: 9px;
+  min-height: 48px;
+}
+
+body:has(#login-section:not([hidden])) #login-form input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(23, 23, 139, 0.13);
+}
+
+/* Make the sign-in button match the school colors */
+body:has(#login-section:not([hidden])) #login-button {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 14px;
+  border-radius: 9px;
+  background: var(--navy);
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 5px 12px rgba(8, 8, 91, 0.16);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+body:has(#login-section:not([hidden])) #login-button:hover {
+  background: var(--blue);
+  transform: translateY(-1px);
+}
+
+/* Keep the school identity visible above the background */
+body:has(#login-section:not([hidden])) .site-header {
+  background: rgba(8, 8, 91, 0.96);
+}
+
+/* Keep the footer consistent with the school theme */
+body:has(#login-section:not([hidden])) footer {
+  background: rgba(8, 8, 91, 0.96);
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  body:has(#login-section:not([hidden])) {
+    background-attachment: scroll;
+    background-position: center center;
+  }
+
+  body:has(#login-section:not([hidden])) .container {
+    width: calc(100% - 28px);
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  body:has(#login-section:not([hidden])) #login-section {
+    padding: 25px 20px;
+    border-radius: 15px;
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  body:has(#login-section:not([hidden])) #login-button {
+    transition: none;
+  }
+
+  body:has(#login-section:not([hidden])) #login-button:hover {
+    transform: none;
+  }
+}
