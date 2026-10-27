@@ -1,10 +1,13 @@
 :root {
+  /* SNHS blue and gold theme */
   --navy: #08085b;
   --blue: #17178b;
   --blue-dark: #0b0b60;
   --gold: #f4d900;
   --gold-dark: #d4b900;
   --gold-light: #fffbe0;
+
+  /* Interface colors */
   --background: #f4f6fc;
   --white: #ffffff;
   --text: #202544;
@@ -33,6 +36,10 @@ body {
   line-height: 1.6;
 }
 
+/* =========================================
+   SCHOOL HEADER AND LOGO
+========================================= */
+
 .site-header {
   display: flex;
   align-items: center;
@@ -44,6 +51,7 @@ body {
   box-shadow: 0 4px 16px rgba(8, 8, 91, 0.18);
 }
 
+/* Fixed logo area prevents overlap */
 .school-mark {
   display: grid;
   place-items: center;
@@ -64,6 +72,7 @@ body {
   object-fit: contain;
 }
 
+/* Text occupies only the remaining space */
 .school-header-text {
   flex: 1 1 0;
   min-width: 0;
@@ -85,6 +94,10 @@ body {
   font-size: 14px;
   overflow-wrap: anywhere;
 }
+
+/* =========================================
+   MAIN LAYOUT
+========================================= */
 
 .container {
   width: min(100% - 32px, 1000px);
@@ -125,6 +138,10 @@ body {
 .panel > p {
   color: var(--muted);
 }
+
+/* =========================================
+   FORMS
+========================================= */
 
 form {
   display: flex;
@@ -169,6 +186,10 @@ input::placeholder {
   color: #8992a7;
 }
 
+/* =========================================
+   GENERAL BUTTONS
+========================================= */
+
 button {
   min-height: 44px;
   margin-top: 12px;
@@ -211,6 +232,10 @@ button:focus-visible {
   border-color: var(--gold-dark);
 }
 
+/* =========================================
+   DASHBOARD HEADER
+========================================= */
+
 .dashboard-heading {
   display: flex;
   align-items: center;
@@ -228,6 +253,10 @@ button:focus-visible {
   margin: 4px 0 0;
   color: var(--muted);
 }
+
+/* =========================================
+   ADMINISTRATOR TABS
+========================================= */
 
 .admin-tabs {
   display: flex;
@@ -267,6 +296,10 @@ button:focus-visible {
   color: var(--muted);
 }
 
+/* =========================================
+   AUTOMATIC GRADE EVALUATION
+========================================= */
+
 .evaluation-panel {
   margin-top: 12px;
   padding: 18px;
@@ -305,6 +338,10 @@ button:focus-visible {
   color: var(--success);
 }
 
+/* =========================================
+   MESSAGES AND HELP TEXT
+========================================= */
+
 .message {
   min-height: 24px;
   margin: 14px 0 0;
@@ -322,6 +359,10 @@ button:focus-visible {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* =========================================
+   TABLES
+========================================= */
 
 .table-container {
   width: 100%;
@@ -383,6 +424,10 @@ button:focus-visible {
   width: auto;
 }
 
+/* =========================================
+   DELETE SUBJECT BUTTON
+========================================= */
+
 .delete-subject-button {
   min-height: 36px;
   margin-top: 0;
@@ -401,6 +446,10 @@ button:focus-visible {
   background: #8f1d14;
   border-color: #8f1d14;
 }
+
+/* =========================================
+   EDIT GRADE BUTTON
+========================================= */
 
 .edit-grade-button {
   min-height: 36px;
@@ -433,9 +482,17 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+/* =========================================
+   HIDDEN ELEMENTS
+========================================= */
+
 [hidden] {
   display: none !important;
 }
+
+/* =========================================
+   FOOTER
+========================================= */
 
 footer {
   margin-top: auto;
@@ -451,236 +508,9 @@ footer p {
   margin: 0;
 }
 
-/* CLASS LIST AND INDIVIDUAL STUDENT RECORDS */
-
-.class-roster-section {
-  margin-top: 34px;
-  padding-top: 8px;
-  border-top: 3px solid var(--gold);
-}
-
-.section-intro p {
-  margin-top: 4px;
-  color: var(--muted);
-}
-
-.roster-filters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin: 18px 0;
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #f8f9fe;
-}
-
-.roster-filters > div {
-  min-width: 0;
-}
-
-.roster-filters label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.roster-summary {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin: 14px 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.roster-summary strong {
-  color: var(--navy);
-  font-size: 17px;
-}
-
-.class-roster-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.student-roster-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.student-roster-card:hover {
-  border-color: var(--gold-dark);
-  box-shadow: 0 4px 14px rgba(8, 8, 91, 0.07);
-}
-
-.student-roster-card .student-card-info {
-  min-width: 0;
-}
-
-.student-roster-card h4 {
-  margin: 0 0 4px;
-  color: var(--navy);
-  overflow-wrap: anywhere;
-}
-
-.student-roster-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-
-.student-roster-card button {
-  flex: 0 0 auto;
-  margin: 0;
-}
-
-.empty-state {
-  grid-column: 1 / -1;
-  padding: 20px;
-  color: var(--muted);
-  text-align: center;
-  border: 1px dashed var(--border);
-  border-radius: 9px;
-}
-
-.student-record-panel {
-  margin-top: 28px;
-  padding: clamp(16px, 3vw, 26px);
-  border: 1px solid var(--border);
-  border-top: 4px solid var(--gold-dark);
-  border-radius: 12px;
-  background: #fff;
-}
-
-.student-record-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.student-record-heading h3 {
-  margin-top: 2px;
-}
-
-.student-record-heading p {
-  color: var(--muted);
-  margin: 3px 0;
-}
-
-.student-record-heading .eyebrow {
-  color: var(--blue);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-}
-
-.student-record-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 20px 0;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.record-tab {
-  margin: 0;
-  background: #edf0fb;
-  color: var(--navy);
-  border: 1px solid #dce2f3;
-}
-
-.record-tab.active {
-  background: var(--navy);
-  color: #fff;
-  border-color: var(--gold);
-  box-shadow: inset 0 -3px 0 var(--gold);
-}
-
-.record-panel h4 {
-  margin: 10px 0 14px;
-}
-
-.record-profile-grid,
-.evaluation-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.record-info-item,
-.evaluation-stat {
-  min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fafbff;
-}
-
-.record-info-item span,
-.evaluation-stat span {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.record-info-item strong,
-.evaluation-stat strong {
-  display: block;
-  margin-top: 4px;
-  color: var(--navy);
-  overflow-wrap: anywhere;
-}
-
-.evaluation-stat strong {
-  font-size: 22px;
-}
-
-@media (max-width: 700px) {
-  .roster-filters {
-    grid-template-columns: 1fr;
-  }
-
-  .class-roster-list {
-    grid-template-columns: 1fr;
-  }
-
-  .student-record-heading {
-    flex-direction: column;
-  }
-
-  .student-record-heading button {
-    width: 100%;
-  }
-
-  .record-profile-grid,
-  .evaluation-summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .student-roster-card {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .student-roster-card button {
-    width: 100%;
-  }
-}
+/* =========================================
+   MOBILE AND TABLET
+========================================= */
 
 @media (max-width: 600px) {
   .site-header {
@@ -746,6 +576,10 @@ footer p {
     padding: 10px;
   }
 }
+
+/* =========================================
+   REDUCED MOTION ACCESSIBILITY
+========================================= */
 
 @media (prefers-reduced-motion: reduce) {
   html {
