@@ -37,10 +37,7 @@ body {
   line-height: 1.6;
 }
 
-/* =========================================
-   SCHOOL HEADER AND LOGO
-========================================= */
-
+/* SCHOOL HEADER AND LOGO */
 .site-header {
   display: flex;
   align-items: center;
@@ -94,10 +91,7 @@ body {
   overflow-wrap: anywhere;
 }
 
-/* =========================================
-   MAIN LAYOUT
-========================================= */
-
+/* MAIN LAYOUT */
 .container {
   width: min(100% - 32px, 1000px);
   margin: 36px auto;
@@ -138,10 +132,7 @@ body {
   color: var(--muted);
 }
 
-/* =========================================
-   FORMS
-========================================= */
-
+/* FORMS */
 form {
   display: flex;
   flex-direction: column;
@@ -185,10 +176,7 @@ input::placeholder {
   color: #8992a7;
 }
 
-/* =========================================
-   GENERAL BUTTONS
-========================================= */
-
+/* GENERAL BUTTONS */
 button {
   min-height: 44px;
   margin-top: 12px;
@@ -231,10 +219,7 @@ button:focus-visible {
   border-color: var(--gold-dark);
 }
 
-/* =========================================
-   DASHBOARD HEADER
-========================================= */
-
+/* DASHBOARD HEADER */
 .dashboard-heading {
   display: flex;
   align-items: center;
@@ -253,10 +238,7 @@ button:focus-visible {
   color: var(--muted);
 }
 
-/* =========================================
-   ADMINISTRATOR TABS
-========================================= */
-
+/* ADMINISTRATOR TABS */
 .admin-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -295,10 +277,7 @@ button:focus-visible {
   color: var(--muted);
 }
 
-/* =========================================
-   AUTOMATIC GRADE EVALUATION
-========================================= */
-
+/* AUTOMATIC GRADE EVALUATION */
 .evaluation-panel {
   margin-top: 12px;
   padding: 18px;
@@ -337,10 +316,7 @@ button:focus-visible {
   color: var(--success);
 }
 
-/* =========================================
-   MESSAGES AND HELP TEXT
-========================================= */
-
+/* MESSAGES AND HELP TEXT */
 .message {
   min-height: 24px;
   margin: 14px 0 0;
@@ -359,10 +335,7 @@ button:focus-visible {
   font-size: 13px;
 }
 
-/* =========================================
-   TABLES
-========================================= */
-
+/* TABLES */
 .table-container {
   width: 100%;
   max-width: 100%;
@@ -423,10 +396,7 @@ button:focus-visible {
   width: auto;
 }
 
-/* =========================================
-   DELETE SUBJECT BUTTON
-========================================= */
-
+/* DELETE SUBJECT BUTTON */
 .delete-subject-button {
   min-height: 36px;
   margin-top: 0;
@@ -446,10 +416,7 @@ button:focus-visible {
   border-color: #8f1d14;
 }
 
-/* =========================================
-   EDIT GRADE BUTTON
-========================================= */
-
+/* EDIT GRADE BUTTON */
 .edit-grade-button {
   min-height: 36px;
   margin-top: 0;
@@ -481,18 +448,12 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* =========================================
-   HIDDEN ELEMENTS
-========================================= */
-
+/* HIDDEN ELEMENTS */
 [hidden] {
   display: none !important;
 }
 
-/* =========================================
-   FOOTER
-========================================= */
-
+/* FOOTER */
 footer {
   margin-top: auto;
   padding: 18px;
@@ -507,9 +468,233 @@ footer p {
   margin: 0;
 }
 
-/* =========================================
-   MOBILE AND TABLET
-========================================= */
+/* LOGIN PAGE BACKGROUND */
+body:has(#login-section:not([hidden])) {
+  position: relative;
+  isolation: isolate;
+  background-color: #eef1f8 !important;
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(8, 8, 91, 0.28) 0%,
+      rgba(23, 23, 139, 0.16) 48%,
+      rgba(244, 246, 252, 0.34) 100%
+    ),
+    url("./school-gate.png") !important;
+  background-position: center center, center center !important;
+  background-size: cover, cover !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed !important;
+}
+
+/* LOGIN PANEL LAYOUT */
+body:has(#login-section:not([hidden])) .container {
+  width: min(100% - 32px, 460px);
+  margin: auto;
+  padding-top: 32px;
+  padding-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+body:has(#login-section:not([hidden])) #login-section {
+  padding: clamp(24px, 5vw, 38px);
+  background: rgba(255, 255, 255, 0.86) !important;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-top: 4px solid var(--gold);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(8, 8, 91, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+body:has(#login-section:not([hidden])) #login-section h2 {
+  color: var(--navy);
+  font-size: clamp(25px, 4vw, 31px);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+body:has(#login-section:not([hidden])) #login-section > p:first-of-type {
+  color: #59627b;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+body:has(#login-section:not([hidden])) #login-form input {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbd2e3;
+  border-radius: 9px;
+  min-height: 48px;
+}
+
+body:has(#login-section:not([hidden])) #login-form input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(23, 23, 139, 0.13);
+}
+
+body:has(#login-section:not([hidden])) #login-button {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 14px;
+  border-radius: 9px;
+  background: var(--navy);
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 5px 12px rgba(8, 8, 91, 0.16);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+body:has(#login-section:not([hidden])) #login-button:hover {
+  background: var(--blue);
+  transform: translateY(-1px);
+}
+
+body:has(#login-section:not([hidden])) .site-header,
+body:has(#login-section:not([hidden])) footer {
+  background: rgba(8, 8, 91, 0.94);
+}
+
+/* STUDENT RECORD TABS */
+#student-record-panel .record-tabs button,
+#student-record-panel .record-tabs button:focus,
+#student-record-panel .record-tabs button:active {
+  background: #17178b !important;
+  background-color: #17178b !important;
+  color: #ffffff !important;
+  border: 1px solid #17178b !important;
+  box-shadow: none !important;
+}
+
+#student-record-panel .record-tabs button {
+  background: #17178b !important;
+  background-color: #17178b !important;
+  color: #ffffff !important;
+  border: 1px solid #17178b !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+#student-record-panel .record-tabs button:hover,
+#student-record-panel .record-tabs button.active,
+#student-record-panel .record-tabs button[aria-selected="true"] {
+  background: #08085b !important;
+  background-color: #08085b !important;
+  color: #ffffff !important;
+  border-color: #f4d900 !important;
+  opacity: 1 !important;
+}
+
+#student-record-panel .record-tabs button.secondary-button {
+  background: #17178b !important;
+  background-color: #17178b !important;
+  color: #ffffff !important;
+  border-color: #17178b !important;
+}
+
+/* CLASS ROSTER: MALE AND FEMALE TABLES */
+.class-roster-gender-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.class-roster-gender-column,
+.class-roster-other {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.male-roster-heading,
+.female-roster-heading,
+.class-roster-other h3 {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+}
+
+.male-roster-heading {
+  color: #2874c8;
+}
+
+.female-roster-heading {
+  color: #a044ad;
+}
+
+.gender-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gender-student-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.gender-student-table th,
+.gender-student-table td {
+  padding: 8px 7px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gender-student-table th {
+  background: #f3f5f8;
+  font-weight: 600;
+}
+
+.gender-student-class {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* COMPACT ROSTER ACTION BUTTONS */
+.gender-student-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.gender-student-actions button {
+  min-height: 26px !important;
+  height: auto;
+  width: auto;
+  margin: 0 !important;
+  padding: 4px 7px !important;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 11px !important;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.gender-student-actions button:hover {
+  filter: brightness(0.92);
+}
+
+.class-roster-other {
+  margin-top: 20px;
+}
+
+/* RESPONSIVE LAYOUT */
+@media (max-width: 850px) {
+  .class-roster-gender-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 600px) {
   .site-header {
@@ -574,128 +759,7 @@ footer p {
   .table-container td {
     padding: 10px;
   }
-}
 
-/* =========================================
-   REDUCED MOTION ACCESSIBILITY
-========================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* =========================================
-   LOGIN PAGE BACKGROUND
-   ========================================= */
-
-/* School gate photo with a soft navy overlay */
-body:has(#login-section:not([hidden])) {
-  position: relative;
-  isolation: isolate;
-
-  background-color: #eef1f8 !important;
-  background-image:
-    linear-gradient(
-      135deg,
-      rgba(8, 8, 91, 0.28) 0%,
-      rgba(23, 23, 139, 0.16) 48%,
-      rgba(244, 246, 252, 0.34) 100%
-    ),
-    url("./school-gate.png") !important;
-
-  background-position: center center, center center !important;
-  background-size: cover, cover !important;
-  background-repeat: no-repeat, no-repeat !important;
-  background-attachment: fixed, fixed !important;
-}
-
-/* Center and size the login panel */
-body:has(#login-section:not([hidden])) .container {
-  width: min(100% - 32px, 460px);
-  margin: auto;
-  padding-top: 32px;
-  padding-bottom: 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Translucent white login card */
-body:has(#login-section:not([hidden])) #login-section {
-  padding: clamp(24px, 5vw, 38px);
-  background: rgba(255, 255, 255, 0.86) !important;
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  border-top: 4px solid var(--gold);
-  border-radius: 18px;
-  box-shadow: 0 18px 50px rgba(8, 8, 91, 0.22);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* Login heading */
-body:has(#login-section:not([hidden])) #login-section h2 {
-  color: var(--navy);
-  font-size: clamp(25px, 4vw, 31px);
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-/* Introductory text */
-body:has(#login-section:not([hidden])) #login-section > p:first-of-type {
-  color: #59627b;
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-/* Login input fields */
-body:has(#login-section:not([hidden])) #login-form input {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #cbd2e3;
-  border-radius: 9px;
-  min-height: 48px;
-}
-
-body:has(#login-section:not([hidden])) #login-form input:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(23, 23, 139, 0.13);
-}
-
-/* Login button */
-body:has(#login-section:not([hidden])) #login-button {
-  width: 100%;
-  min-height: 49px;
-  margin-top: 14px;
-  border-radius: 9px;
-  background: var(--navy);
-  color: #ffffff;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  box-shadow: 0 5px 12px rgba(8, 8, 91, 0.16);
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-body:has(#login-section:not([hidden])) #login-button:hover {
-  background: var(--blue);
-  transform: translateY(-1px);
-}
-
-/* Keep the header and footer readable */
-body:has(#login-section:not([hidden])) .site-header,
-body:has(#login-section:not([hidden])) footer {
-  background: rgba(8, 8, 91, 0.94);
-}
-
-/* Mobile login background and panel */
-@media (max-width: 600px) {
   body:has(#login-section:not([hidden])) {
     background-attachment: scroll, scroll !important;
     background-position: center center, center center !important;
@@ -711,169 +775,35 @@ body:has(#login-section:not([hidden])) footer {
     padding: 25px 20px;
     border-radius: 15px;
   }
+
+  .gender-student-actions {
+    gap: 4px;
+  }
+
+  .gender-student-actions button {
+    min-height: 24px !important;
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+  }
 }
 
-/* Reduced motion accessibility */
+/* REDUCED MOTION ACCESSIBILITY */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+
   body:has(#login-section:not([hidden])) #login-button {
     transition: none;
   }
 
   body:has(#login-section:not([hidden])) #login-button:hover {
     transform: none;
-  }
-
-/* =========================================
-   STUDENT RECORD TABS - NAVY BLUE THEME
-========================================= */
-
-#student-record-panel .record-tabs button,
-#student-record-panel .record-tabs button:focus,
-#student-record-panel .record-tabs button:active {
-  background: #17178b !important;
-  background-color: #17178b !important;
-  color: #ffffff !important;
-  border: 1px solid #17178b !important;
-  box-shadow: none !important;
-}
-
-
-/* FIX: Student Record Tab Button Visibility */
-#student-record-panel .record-tabs button {
-  background: #17178b !important;
-  background-color: #17178b !important;
-  color: #ffffff !important;
-  border: 1px solid #17178b !important;
-  opacity: 1 !important;
-  text-shadow: none !important;
-}
-
-/* Hover and active tab */
-#student-record-panel .record-tabs button:hover,
-#student-record-panel .record-tabs button.active,
-#student-record-panel .record-tabs button[aria-selected="true"] {
-  background: #08085b !important;
-  background-color: #08085b !important;
-  color: #ffffff !important;
-  border-color: #f4d900 !important;
-  opacity: 1 !important;
-}
-
-/* Override secondary-button styling on these tabs */
-#student-record-panel .record-tabs button.secondary-button {
-  background: #17178b !important;
-  background-color: #17178b !important;
-  color: #ffffff !important;
-  border-color: #17178b !important;
-}
-
-/* Class roster: male and female tables side by side */
-.class-roster-gender-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  align-items: start;
-  width: 100%;
-}
-
-.class-roster-gender-column,
-.class-roster-other {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid #d9dee7;
-  border-radius: 10px;
-  background: var(--card-bg, #ffffff);
-}
-
-.male-roster-heading,
-.female-roster-heading,
-.class-roster-other h3 {
-  margin: 0 0 14px;
-  font-size: 1.05rem;
-}
-
-.male-roster-heading {
-  color: #2874c8;
-}
-
-.female-roster-heading {
-  color: #a044ad;
-}
-
-.gender-table-scroll {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.gender-student-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.gender-student-table th,
-.gender-student-table td {
-  padding: 10px 8px;
-  text-align: left;
-  vertical-align: top;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.gender-student-table th {
-  background: #f3f5f8;
-  font-weight: 600;
-}
-
-.gender-student-class {
-  margin-top: 4px;
-  color: #6b7280;
-  font-size: 0.8rem;
-}
-
-.gender-student-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.gender-student-actions button {
-  cursor: pointer;
-  padding: 5px 8px;
-  font-size: 0.8rem;
-}
-
-.class-roster-other {
-  margin-top: 20px;
-}
-
-@media (max-width: 850px) {
-  .class-roster-gender-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Compact action buttons in the class roster */
-.gender-student-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-}
-
-.gender-student-actions button {
-  padding: 5px 8px;
-  font-size: 11px;
-  line-height: 1.3;
-  border-radius: 5px;
-  min-height: 28px;
-  white-space: nowrap;
-}
-
-/* Keep buttons compact on smaller screens */
-@media (max-width: 600px) {
-  .gender-student-actions button {
-    padding: 4px 6px;
-    font-size: 10px;
-    min-height: 25px;
   }
 }
