@@ -722,8 +722,15 @@ body:has(#login-section:not([hidden])) footer {
   body:has(#login-section:not([hidden])) #login-button:hover {
     transform: none;
   }
-}
-/* Student Record Tabs - Black Text */
+/* Student Record Tabs - Blue Background, White Text */
 #student-record-panel .record-tabs button {
-  color: #000000 !important;
+  background: #17178b !important;
+  color: #ffffff !important;
+  border: 1px solid #17178b !important;
+}
+
+#student-record-panel .record-tabs button:hover,
+#student-record-panel .record-tabs button.active {
+  background: #08085b !important;
+  color: #ffffff !important;
 }
