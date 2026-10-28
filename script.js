@@ -1046,57 +1046,103 @@ if (studentSubjects.length === 0) {
       };
     });
 
-    if (rows.length === 0) {
-      gradesContainer.innerHTML =
-        "<p>Subject details could not be found for this student.</p>";
-    } else {
-      gradesContainer.innerHTML = `
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>School Year</th>
-          <th>Term</th>
-          <th>Grade Level</th>
-          <th>Subject</th>
-          <th>Grade</th>
-          <th>Evaluation</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+if (rows.length === 0) {
+  gradesContainer.innerHTML =
+    "<p>No subjects found for this student.</p>";
+} else {
+  // Group subjects by school year and term
+  const groupedRows = {};
 
-      <tbody>
-        ${rows.map((row) => `
-          <tr>
-            <td>${escapeHTML(row.term?.school_year || "Unknown")}</td>
-            <td>${escapeHTML(row.term?.term_name || "Unknown")}</td>
-            <td>${escapeHTML(row.subject.grade_level || student.grade_level || "—")}</td>
-            <td>${escapeHTML(row.subject.subject_name || "Unnamed subject")}</td>
-            <td>${formatGrade(row.grade)}</td>
-          <td>${escapeHTML(row.evaluation)}</td>
-<td>
-  <button
-    type="button"
-    class="record-edit-grade-button"
-    data-student-id="${escapeHTML(student.id)}"
-    data-subject-id="${escapeHTML(row.subject.id)}"
-  >Edit Grade</button>
-</td>
-              <button
-                type="button"
-                class="record-edit-grade-button"
-                data-student-id="${escapeHTML(student.id)}"
-                data-subject-id="${escapeHTML(row.subject.id)}"
-              >Edit Grade</button>
-            </td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  </div>
-`;
+  rows.forEach((row) => {
+    const schoolYear = row.term?.school_year || "Unknown School Year";
+    const termName = row.term?.term_name || "Unassigned Term";
+    const groupKey = `${schoolYear}|||${termName}`;
+
+    if (!groupedRows[groupKey]) {
+      groupedRows[groupKey] = {
+        schoolYear,
+        termName,
+        rows: []
+      };
     }
 
+    groupedRows[groupKey].rows.push(row);
+  });
+
+  // Set the preferred term order
+  const termOrder = [
+    "First Term",
+    "Second Term",
+    "Third Term"
+  ];
+
+  const groups = Object.values(groupedRows).sort((a, b) => {
+    const yearCompare = a.schoolYear.localeCompare(b.schoolYear);
+
+    if (yearCompare !== 0) return yearCompare;
+
+    const aIndex = termOrder.indexOf(a.termName);
+    const bIndex = termOrder.indexOf(b.termName);
+
+    return (aIndex === -1 ? 99 : aIndex) -
+           (bIndex === -1 ? 99 : bIndex);
+  });
+
+  gradesContainer.innerHTML = groups.map((group) => `
+    <section class="grade-term-group">
+      <h3 class="grade-term-heading">
+        ${escapeHTML(group.schoolYear)} — ${escapeHTML(group.termName)}
+      </h3>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Grade Level</th>
+              <th>Subject</th>
+              <th>Grade</th>
+              <th>Evaluation</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${group.rows.map((row) => `
+              <tr>
+                <td>
+                  ${escapeHTML(
+                    row.subject.grade_level ||
+                    student.grade_level ||
+                    "—"
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHTML(
+                    row.subject.subject_name || "Unnamed subject"
+                  )}
+                </td>
+
+                <td>${formatGrade(row.grade)}</td>
+
+                <td>${escapeHTML(row.evaluation)}</td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="record-edit-grade-button"
+                    data-student-id="${escapeHTML(student.id)}"
+                    data-subject-id="${escapeHTML(row.subject.id)}"
+                  >Edit Grade</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `).join("");
+}
     const numericGrades = rows
       .map((row) => row.grade)
       .filter((grade) => grade !== null && grade !== undefined && grade !== "")
