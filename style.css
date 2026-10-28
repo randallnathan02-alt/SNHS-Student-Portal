@@ -723,3 +723,7 @@ body:has(#login-section:not([hidden])) footer {
     transform: none;
   }
 }
+/* Student Record Tabs - Black Text */
+#student-record-panel .record-tabs button {
+  color: #000000 !important;
+}
