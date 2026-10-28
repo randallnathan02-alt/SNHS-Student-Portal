@@ -423,7 +423,7 @@ async function loadDashboard() {
     await supabaseClient
       .from("profiles")
       .select(
-        "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+        "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
       )
       .eq("id", currentUser.id)
       .maybeSingle();
@@ -496,15 +496,16 @@ function setStudentProfileFormLocked(locked) {
 function populateStudentProfile(profile) {
   if (!profile || profile.role !== "student") return;
 
+
   $("profile-gender").value = profile.gender || "";
-  $("profile-birthday").value = profile.birthday || "";
+  $("profile-birthdate").value = profile.birthday || "";
   $("profile-blood-type").value = profile.blood_type || "";
   $("profile-emergency-name").value =
     profile.emergency_contact_name || "";
   $("profile-emergency-relationship").value =
     profile.emergency_contact_relationship || "";
   $("profile-emergency-phone").value =
-    profile.emergency_contact_phone || "";
+    profile.emergency_contact_number || "";
 
   const hasSavedInformation = [
     profile.gender,
@@ -512,7 +513,7 @@ function populateStudentProfile(profile) {
     profile.blood_type,
     profile.emergency_contact_name,
     profile.emergency_contact_relationship,
-    profile.emergency_contact_phone
+    profile.emergency_contact_number
   ].some((value) => value !== null && value !== undefined && value !== "");
 
   setStudentProfileFormLocked(hasSavedInformation);
@@ -542,17 +543,19 @@ studentProfileForm?.addEventListener("submit", async (event) => {
     return;
   }
 
-  const values = {
-    gender: $("profile-gender").value || null,
-    birthdate: $("profile-birthday").value || null,
-    blood_type: $("profile-blood-type").value || null,
-    emergency_contact_name:
-      $("profile-emergency-name").value.trim() || null,
-    emergency_contact_relationship:
-      $("profile-emergency-relationship").value.trim() || null,
-    emergency_contact_phone:
-      $("profile-emergency-phone").value.trim() || null
-  };
+
+const values = {
+  gender: $("profile-gender").value || null,
+  birthday: $("profile-birthdate").value || null,
+  blood_type: $("profile-blood-type").value || null,
+  emergency_contact_name:
+    $("profile-emergency-name").value.trim() || null,
+  emergency_contact_relationship:
+    $("profile-emergency-relationship").value.trim() || null,
+  emergency_contact_number:
+    $("profile-emergency-phone").value.trim() || null
+};
+
 
   button.disabled = true;
   button.textContent = "Saving...";
@@ -813,9 +816,11 @@ async function loadStudents() {
   const { data, error } = await supabaseClient
     .from("profiles")
    
+
 .select(
-  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
 )
+
 
     .eq("role", "student")
     .order("last_name", { ascending: true });
@@ -1089,6 +1094,7 @@ async function openStudentRecord(student) {
     `${student.section || "No section assigned"}`;
 
  
+
 $("record-profile-content").innerHTML = [
   renderProfileField("Student ID", student.student_id),
   renderProfileField("First Name", student.first_name),
@@ -1096,21 +1102,20 @@ $("record-profile-content").innerHTML = [
   renderProfileField("Grade Level", student.grade_level),
   renderProfileField("Section", student.section),
   renderProfileField("Gender", student.gender),
-  
-renderProfileField("Birthday", student.birthday),
-renderProfileField("Blood Type", student.blood_type),
-renderProfileField(
-  "Emergency Contact Name",
-  student.emergency_contact_name
-),
-renderProfileField(
-  "Emergency Contact Relationship",
-  student.emergency_contact_relationship
-),
-renderProfileField(
-  "Emergency Contact Number",
-  student.emergency_contact_phone
-),
+  renderProfileField("Birthday", student.birthday),
+  renderProfileField("Blood Type", student.blood_type),
+  renderProfileField(
+    "Emergency Contact Name",
+    student.emergency_contact_name
+  ),
+  renderProfileField(
+    "Emergency Contact Relationship",
+    student.emergency_contact_relationship
+  ),
+  renderProfileField(
+    "Emergency Contact Number",
+    student.emergency_contact_number
+  ),
 
   `
     <div class="record-info-item">
@@ -1128,6 +1133,7 @@ renderProfileField(
   renderProfileField("Account Status", student.is_active ? "Active" : "Inactive"),
   renderProfileField("Profile ID", student.id)
 ].join("");
+
 
 
   setActiveRecordTab("profile");
