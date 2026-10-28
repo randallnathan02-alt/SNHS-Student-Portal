@@ -685,9 +685,11 @@ async function loadStudents() {
 
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select(
-  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender"
+   
+.select(
+  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthdate, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
 )
+
     .eq("role", "student")
     .order("last_name", { ascending: true });
 
@@ -967,6 +969,22 @@ $("record-profile-content").innerHTML = [
   renderProfileField("Grade Level", student.grade_level),
   renderProfileField("Section", student.section),
   renderProfileField("Gender", student.gender),
+  
+renderProfileField("Birthdate", student.birthdate),
+renderProfileField("Blood Type", student.blood_type),
+renderProfileField(
+  "Emergency Contact Name",
+  student.emergency_contact_name
+),
+renderProfileField(
+  "Emergency Contact Relationship",
+  student.emergency_contact_relationship
+),
+renderProfileField(
+  "Emergency Contact Number",
+  student.emergency_contact_phone
+),
+
   `
     <div class="record-info-item">
       <label for="admin-edit-gender">Edit Gender</label>
