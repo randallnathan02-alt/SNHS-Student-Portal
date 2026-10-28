@@ -223,33 +223,30 @@ function ensureClassRosterMarkup() {
           cursor: pointer;
         }
 
-        .record-tabs {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin: 16px 0;
-        }
-
-        
-.record-tabs button {
+   
+.record-tabs button,
+.record-tabs button:focus,
+.record-tabs button:active,
+.record-tabs button.active {
   padding: 9px 12px;
-  border: 1px solid #17178b;
+  border: 1px solid #17178b !important;
   border-radius: 8px;
   background: #17178b !important;
+  background-color: #17178b !important;
   color: #ffffff !important;
   cursor: pointer;
   font-weight: 700;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.record-tabs button:hover {
+.record-tabs button:hover,
+.record-tabs button.active:hover {
   background: #08085b !important;
+  background-color: #08085b !important;
   color: #ffffff !important;
-}
-
-.record-tabs button.active {
-  background: #08085b !important;
-  color: #ffffff !important;
-  border-color: #08085b;
 }
 
 
