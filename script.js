@@ -2254,7 +2254,8 @@ async function loadStudentGrades() {
         getTermOrder(b.term?.term_name);
     });
 
-    container.innerHTML = sortedGroups.map((group) => {
+    console.log("Grouped student terms:", sortedGroups);
+container.innerHTML = sortedGroups.map((group) => {
       const termName = group.term?.term_name || "Term Not Assigned";
       const schoolYear =
         group.term?.school_year || "School Year Not Assigned";
