@@ -418,14 +418,16 @@ async function loadDashboard() {
 
   currentUser = sessionData.session.user;
 
+  
   const { data: profile, error: profileError } =
     await supabaseClient
       .from("profiles")
       .select(
-  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender"
-)
+        "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthdate, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+      )
       .eq("id", currentUser.id)
       .maybeSingle();
+
 
   if (
     profileError ||
@@ -442,6 +444,10 @@ async function loadDashboard() {
   }
 
   currentProfile = profile;
+
+if (profile.role === "student") {
+  populateStudentProfile(profile);
+}
 
   loginSection.hidden = true;
   dashboardSection.hidden = false;
@@ -470,6 +476,127 @@ async function loadDashboard() {
     await loadAdminData();
   }
 }
+
+function setStudentProfileFormLocked(locked) {
+  const form = $("student-profile-form");
+  if (!form) return;
+
+  form.querySelectorAll("input, select").forEach((field) => {
+    field.disabled = locked;
+  });
+
+  const button = $("save-student-profile");
+  if (button) {
+    button.textContent = locked
+      ? "Edit Profile Information"
+      : "Save Profile Information";
+  }
+}
+
+function populateStudentProfile(profile) {
+  if (!profile || profile.role !== "student") return;
+
+  $("profile-gender").value = profile.gender || "";
+  $("profile-birthdate").value = profile.birthdate || "";
+  $("profile-blood-type").value = profile.blood_type || "";
+  $("profile-emergency-name").value =
+    profile.emergency_contact_name || "";
+  $("profile-emergency-relationship").value =
+    profile.emergency_contact_relationship || "";
+  $("profile-emergency-phone").value =
+    profile.emergency_contact_phone || "";
+
+  const hasSavedInformation = [
+    profile.gender,
+    profile.birthdate,
+    profile.blood_type,
+    profile.emergency_contact_name,
+    profile.emergency_contact_relationship,
+    profile.emergency_contact_phone
+  ].some((value) => value !== null && value !== undefined && value !== "");
+
+  setStudentProfileFormLocked(hasSavedInformation);
+}
+
+const studentProfileForm = $("student-profile-form");
+
+studentProfileForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (currentProfile?.role !== "student" || !currentUser) {
+    showMessage(
+      $("student-profile-message"),
+      "Please sign in as a student.",
+      true
+    );
+    return;
+  }
+
+  const button = $("save-student-profile");
+  const message = $("student-profile-message");
+
+  // If the saved form is locked, unlock it for editing.
+  if (button.textContent.trim() === "Edit Profile Information") {
+    setStudentProfileFormLocked(false);
+    showMessage(message, "You can now edit your personal information.");
+    return;
+  }
+
+  const values = {
+    gender: $("profile-gender").value || null,
+    birthdate: $("profile-birthdate").value || null,
+    blood_type: $("profile-blood-type").value || null,
+    emergency_contact_name:
+      $("profile-emergency-name").value.trim() || null,
+    emergency_contact_relationship:
+      $("profile-emergency-relationship").value.trim() || null,
+    emergency_contact_phone:
+      $("profile-emergency-phone").value.trim() || null
+  };
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .update(values)
+      .eq("id", currentUser.id)
+      .eq("role", "student")
+      .select(
+        "id, gender, birthdate, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+      )
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      throw new Error(
+        "No profile was updated. Check your Supabase permissions."
+      );
+    }
+
+    Object.assign(currentProfile, data);
+
+    populateStudentProfile(currentProfile);
+
+    showMessage(
+      message,
+      "Profile information saved successfully."
+    );
+  } catch (error) {
+    console.error("Student profile save error:", error);
+
+    setStudentProfileFormLocked(false);
+    showMessage(
+      message,
+      "Could not save profile information: " + error.message,
+      true
+    );
+  } finally {
+    button.disabled = false;
+  }
+});
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
