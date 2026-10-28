@@ -1054,32 +1054,43 @@ async function loadIndividualStudentGrades(student) {
         "<p>Subject details could not be found for this student.</p>";
     } else {
       gradesContainer.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>School Year</th>
-              <th>Term</th>
-              <th>Grade Level</th>
-              <th>Subject</th>
-              <th>Grade</th>
-              <th>Evaluation</th>
-            </tr>
-          </thead>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>School Year</th>
+          <th>Term</th>
+          <th>Grade Level</th>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Evaluation</th>
+          <th>Action</th>
+        </tr>
+      </thead>
 
-          <tbody>
-            ${rows.map((row) => `
-              <tr>
-                <td>${escapeHTML(row.term?.school_year || "Unknown")}</td>
-                <td>${escapeHTML(row.term?.term_name || "Unknown")}</td>
-                <td>${escapeHTML(row.subject.grade_level || student.grade_level || "—")}</td>
-                <td>${escapeHTML(row.subject.subject_name || "Unnamed subject")}</td>
-                <td>${formatGrade(row.grade)}</td>
-                <td>${escapeHTML(row.evaluation)}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
+      <tbody>
+        ${rows.map((row) => `
+          <tr>
+            <td>${escapeHTML(row.term?.school_year || "Unknown")}</td>
+            <td>${escapeHTML(row.term?.term_name || "Unknown")}</td>
+            <td>${escapeHTML(row.subject.grade_level || student.grade_level || "—")}</td>
+            <td>${escapeHTML(row.subject.subject_name || "Unnamed subject")}</td>
+            <td>${formatGrade(row.grade)}</td>
+            <td>${escapeHTML(row.evaluation)}</td>
+            <td>
+              <button
+                type="button"
+                class="record-edit-grade-button"
+                data-student-id="${escapeHTML(student.id)}"
+                data-subject-id="${escapeHTML(row.subject.id)}"
+              >Edit Grade</button>
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  </div>
+`;
     }
 
     const numericGrades = rows
@@ -1118,6 +1129,117 @@ async function loadIndividualStudentGrades(student) {
       "<p>Evaluation summary is unavailable because the student grades could not be loaded.</p>";
   }
 }
+
+const recordGradesContent = $("record-grades-content");
+
+recordGradesContent?.addEventListener("click", async (event) => {
+  const button = event.target.closest(".record-edit-grade-button");
+  if (!button) return;
+
+  if (currentProfile?.role !== "admin" || !currentUser) {
+    alert("Administrator access is required to edit grades.");
+    return;
+  }
+
+  const studentId = button.dataset.studentId;
+  const subjectId = button.dataset.subjectId;
+
+  const student = students.find(
+    (item) => String(item.id) === String(studentId)
+  );
+
+  if (!student) {
+    alert("Student record not found. Refresh the class list and try again.");
+    return;
+  }
+
+  const { data: existingRecord, error: lookupError } =
+    await supabaseClient
+      .from("student_grades")
+      .select("grade")
+      .eq("student_id", studentId)
+      .eq("subject_id", subjectId)
+      .maybeSingle();
+
+  if (lookupError) {
+    alert(`Could not retrieve the current grade: ${lookupError.message}`);
+    return;
+  }
+
+  const currentGrade = existingRecord?.grade;
+
+  const enteredGrade = prompt(
+    "Enter the corrected numerical grade (0–100):",
+    currentGrade == null ? "" : String(currentGrade)
+  );
+
+  if (enteredGrade === null) return;
+
+  const rawGrade = enteredGrade.trim();
+  const newGrade = Number(rawGrade);
+
+  if (
+    rawGrade === "" ||
+    !Number.isFinite(newGrade) ||
+    newGrade < 0 ||
+    newGrade > 100
+  ) {
+    alert("Invalid grade. Enter a number from 0 to 100.");
+    return;
+  }
+
+  const oldGradeText =
+    currentGrade == null ? "Not yet graded" : String(currentGrade);
+
+  if (!confirm(
+    `Change the grade from ${oldGradeText} to ${newGrade}?\n\n` +
+    `New evaluation: ${gradeEvaluation(newGrade)}`
+  )) {
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("student_grades")
+      .upsert(
+        {
+          student_id: studentId,
+          subject_id: Number(subjectId),
+          grade: newGrade,
+          updated_by: currentUser.id,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "student_id,subject_id" }
+      )
+      .select("student_id, subject_id, grade");
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      throw new Error(
+        "No grade was saved. Check administrator permissions and database policies."
+      );
+    }
+
+    alert(
+      `Grade saved successfully!\n\n` +
+      `New grade: ${newGrade}\n` +
+      `Evaluation: ${gradeEvaluation(newGrade)}`
+    );
+
+    await loadIndividualStudentGrades(student);
+    await loadAdminGrades();
+  } catch (error) {
+    console.error("Student record grade update error:", error);
+    alert(`Unable to save grade: ${error.message || "Unknown error"}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Edit Grade";
+  }
+});
 
 // ==================================================
 // ACADEMIC TERMS
