@@ -2265,6 +2265,51 @@ container.innerHTML = sortedGroups.map((group) => {
           String(b.subject_name || "")
         )
       );
+  // Calculate the general average for this academic term
+const gradedValues = sortedSubjects
+  .map((subject) => {
+    const gradeRecord = studentGrades.find(
+      (item) => String(item.subject_id) === String(subject.id)
+    );
+
+    const rawGrade = gradeRecord?.grade;
+
+    if (
+      rawGrade === null ||
+      rawGrade === undefined ||
+      String(rawGrade).trim() === ""
+    ) {
+      return null;
+    }
+
+    const numericGrade = Number(rawGrade);
+
+    return Number.isFinite(numericGrade) &&
+      numericGrade >= 0 &&
+      numericGrade <= 100
+      ? numericGrade
+      : null;
+  })
+  .filter((grade) => grade !== null);
+
+const generalAverage =
+  gradedValues.length > 0
+    ? gradedValues.reduce((total, grade) => total + grade, 0) /
+      gradedValues.length
+    : null;
+
+// Determine honors classification
+let honorsRecognition = "No honors distinction";
+
+if (generalAverage !== null) {
+  if (generalAverage >= 98) {
+    honorsRecognition = "With Highest Honors";
+  } else if (generalAverage >= 95) {
+    honorsRecognition = "With High Honors";
+  } else if (generalAverage >= 90) {
+    honorsRecognition = "With Honors";
+  }
+}
 
       return `
         <section class="student-term-card">
@@ -2279,7 +2324,37 @@ container.innerHTML = sortedGroups.map((group) => {
               ${sortedSubjects.length === 1 ? "Subject" : "Subjects"}
             </span>
           </div>
+          <div class="student-general-average"
+               style="margin: 12px 0; padding: 16px; background: #f0f7ff; border-radius: 10px; border-left: 5px solid #2563eb;">
 
+            <div style="font-size: 13px; color: #475569;">
+              GENERAL AVERAGE
+            </div>
+
+            <div style="font-size: 28px; font-weight: 700; color: #1d4ed8; margin: 4px 0;">
+              ${
+                generalAverage !== null
+                  ? generalAverage.toFixed(2)
+                  : "N/A"
+              }
+            </div>
+
+            <div style="font-weight: 600; color: #334155;">
+              ${
+                generalAverage !== null
+                  ? escapeHTML(honorsRecognition)
+                  : "No grades encoded yet"
+              }
+            </div>
+
+            <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+              Based on ${gradedValues.length}
+              graded ${gradedValues.length === 1 ? "subject" : "subjects"}
+            </div>
+
+          </div>
+
+          <div class="table-container">
           <div class="table-container">
             <table>
               <thead>
