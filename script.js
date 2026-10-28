@@ -869,9 +869,33 @@ async function loadStudents() {
 // CLASS LIST AND INDIVIDUAL STUDENT RECORDS
 // ==================================================
 
+
 function getStudentFullName(student) {
   return `${student.first_name || ""} ${student.last_name || ""}`.trim();
 }
+
+function sortStudentsByGenderAndName(studentList) {
+  const genderOrder = {
+    male: 0,
+    female: 1
+  };
+
+  return [...studentList].sort((a, b) => {
+    const genderA = genderOrder[String(a.gender || "").trim().toLowerCase()] ?? 2;
+    const genderB = genderOrder[String(b.gender || "").trim().toLowerCase()] ?? 2;
+
+    if (genderA !== genderB) {
+      return genderA - genderB;
+    }
+
+    return String(a.last_name || "").localeCompare(
+      String(b.last_name || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+  });
+}
+
 
 function getSortedUnique(values) {
   return [...new Set(
@@ -965,19 +989,25 @@ function renderClassRoster() {
 
   populateRosterFilters();
 
-  const filteredStudents = getFilteredStudents().sort((a, b) => {
-  const lastNameComparison = String(a.last_name || "").localeCompare(
-    String(b.last_name || ""),
-    undefined,
-    { sensitivity: "base" }
-  );
 
-  if (lastNameComparison !== 0) {
-    return lastNameComparison;
+const filteredStudents = getFilteredStudents().sort((a, b) => {
+  const genderOrder = {
+    male: 0,
+    female: 1
+  };
+
+  const genderA =
+    genderOrder[String(a.gender || "").trim().toLowerCase()] ?? 2;
+
+  const genderB =
+    genderOrder[String(b.gender || "").trim().toLowerCase()] ?? 2;
+
+  if (genderA !== genderB) {
+    return genderA - genderB;
   }
 
-  return String(a.first_name || "").localeCompare(
-    String(b.first_name || ""),
+  return String(a.last_name || "").localeCompare(
+    String(b.last_name || ""),
     undefined,
     { sensitivity: "base" }
   );
