@@ -1194,8 +1194,9 @@ $("record-profile-content").innerHTML = [
   await loadIndividualStudentGrades(student);
 }
 
+
 $("record-profile-content")?.addEventListener("click", async (event) => {
-  const button = event.target.closest("#save-admin-gender");
+  const button = event.target.closest("#save-admin-student-info");
   if (!button) return;
 
   if (currentProfile?.role !== "admin" || !currentRecordStudentId) {
@@ -1203,8 +1204,33 @@ $("record-profile-content")?.addEventListener("click", async (event) => {
     return;
   }
 
-  const gender = $("admin-edit-gender").value;
-  const message = $("admin-gender-message");
+  const message = $("admin-student-info-message");
+
+  const firstName = $("admin-edit-first-name").value.trim();
+  const lastName = $("admin-edit-last-name").value.trim();
+  const gradeLevel = $("admin-edit-grade-level").value.trim();
+  const section = $("admin-edit-section").value.trim();
+
+  if (!firstName || !lastName) {
+    showMessage(message, "First name and last name are required.", true);
+    return;
+  }
+
+  const updates = {
+    first_name: firstName,
+    last_name: lastName,
+    grade_level: gradeLevel || null,
+    section: section || null,
+    gender: $("admin-edit-gender").value || null,
+    birthday: $("admin-edit-birthday").value || null,
+    blood_type: $("admin-edit-blood-type").value || null,
+    emergency_contact_name:
+      $("admin-edit-emergency-name").value.trim() || null,
+    emergency_contact_relationship:
+      $("admin-edit-emergency-relationship").value.trim() || null,
+    emergency_contact_number:
+      $("admin-edit-emergency-number").value.trim() || null
+  };
 
   button.disabled = true;
   button.textContent = "Saving...";
@@ -1212,13 +1238,17 @@ $("record-profile-content")?.addEventListener("click", async (event) => {
   try {
     const { data, error } = await supabaseClient
       .from("profiles")
-      .update({ gender: gender || null })
+      .update(updates)
       .eq("id", currentRecordStudentId)
       .eq("role", "student")
-      .select("id, gender")
+      .select(
+        "id, first_name, last_name, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
+      )
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error(
@@ -1230,27 +1260,41 @@ $("record-profile-content")?.addEventListener("click", async (event) => {
       (item) => String(item.id) === String(data.id)
     );
 
-    if (student) student.gender = data.gender;
-
-    if (currentProfile && String(currentProfile.id) === String(data.id)) {
-      currentProfile.gender = data.gender;
+    if (student) {
+      Object.assign(student, data);
     }
 
-    showMessage(message, "Gender updated successfully.");
-    
-    await openStudentRecord(student);
-  } catch (error) {
-    console.error("Save student gender error:", error);
-    showMessage(
-      message,
-      `Could not save gender: ${error.message}`,
-      true
+    await loadStudents();
+
+    const updatedStudent = students.find(
+      (item) => String(item.id) === String(data.id)
     );
+
+    if (updatedStudent) {
+      await openStudentRecord(updatedStudent);
+    }
+
+    alert("Student information updated successfully.");
+  } catch (error) {
+    console.error("Save student information error:", error);
+
+    const currentMessage = $("admin-student-info-message");
+
+    if (currentMessage) {
+      showMessage(
+        currentMessage,
+        `Could not save student information: ${error.message}`,
+        true
+      );
+    } else {
+      alert(`Could not save student information: ${error.message}`);
+    }
   } finally {
     button.disabled = false;
-    button.textContent = "Save Gender";
+    button.textContent = "Save Student Information";
   }
 });
+
 
 async function loadIndividualStudentGrades(student) {
   const gradesContainer = $("record-grades-content");
