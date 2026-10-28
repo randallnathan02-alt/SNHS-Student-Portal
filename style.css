@@ -722,15 +722,33 @@ body:has(#login-section:not([hidden])) footer {
   body:has(#login-section:not([hidden])) #login-button:hover {
     transform: none;
   }
-/* Student Record Tabs - Blue Background, White Text */
-#student-record-panel .record-tabs button {
+
+/* =========================================
+   STUDENT RECORD TABS - NAVY BLUE THEME
+========================================= */
+
+#student-record-panel .record-tabs button,
+#student-record-panel .record-tabs button:focus,
+#student-record-panel .record-tabs button:active {
   background: #17178b !important;
+  background-color: #17178b !important;
   color: #ffffff !important;
   border: 1px solid #17178b !important;
+  box-shadow: none !important;
 }
 
+/* Hover and selected tab */
 #student-record-panel .record-tabs button:hover,
-#student-record-panel .record-tabs button.active {
+#student-record-panel .record-tabs button.active,
+#student-record-panel .record-tabs button[aria-selected="true"] {
   background: #08085b !important;
+  background-color: #08085b !important;
   color: #ffffff !important;
+  border-color: #08085b !important;
+}
+
+/* Keep tab labels white */
+#student-record-panel .record-tabs button * {
+  color: #ffffff !important;
+  background-color: transparent !important;
 }
