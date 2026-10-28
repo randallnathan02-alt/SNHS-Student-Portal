@@ -860,7 +860,10 @@ function renderClassRoster() {
   roster.innerHTML = filteredStudents.map((student) => `
     <article class="student-roster-card">
       <div class="student-card-info">
-        <h4>${escapeHTML(getStudentFullName(student) || "Unnamed student")}</h4>
+        <h4>${escapeHTML(
+  `${student.last_name || ""}, ${student.first_name || ""}`.trim().replace(/^,\s*/, "") ||
+  "Unnamed student"
+)}</h4>
         <p>Student ID: ${escapeHTML(student.student_id || "Not assigned")}</p>
         <p>${escapeHTML(student.grade_level || "No grade level")} · ${escapeHTML(student.section || "No section assigned")}</p>
       </div>
