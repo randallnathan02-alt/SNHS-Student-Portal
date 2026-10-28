@@ -1004,6 +1004,7 @@ function renderClassRoster() {
       </div>
 
 
+
 <div class="student-card-actions">
   <button
     type="button"
@@ -1015,7 +1016,15 @@ function renderClassRoster() {
     data-edit-student="${escapeHTML(student.id)}"
     class="student-edit-button"
   >Edit Student</button>
+
+  <button
+    type="button"
+    class="student-deactivate-button"
+    data-deactivate-student="${escapeHTML(student.id)}"
+    aria-label="Remove ${escapeHTML(getStudentFullName(student))} from the active class roster"
+  >Remove from Class</button>
 </div>
+
 
     </article>
   `).join("");
