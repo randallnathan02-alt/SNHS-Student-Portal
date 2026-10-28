@@ -420,6 +420,50 @@
         <p id="student-details"></p>
 
         <h3>My Grades</h3>
+       
+  <h3>My Personal Information</h3>
+
+  <form id="student-profile-form" class="profile-form">
+    <label for="profile-gender">Gender</label>
+    <select id="profile-gender" required>
+      <option value="">Select gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Prefer not to say">Prefer not to say</option>
+    </select>
+
+    <label for="profile-birthdate">Birthdate</label>
+    <input id="profile-birthdate" type="date" required>
+
+    <label for="profile-blood-type">Blood Type</label>
+    <select id="profile-blood-type">
+      <option value="">Select blood type</option>
+      <option value="A+">A+</option>
+      <option value="A-">A-</option>
+      <option value="B+">B+</option>
+      <option value="B-">B-</option>
+      <option value="AB+">AB+</option>
+      <option value="AB-">AB-</option>
+      <option value="O+">O+</option>
+      <option value="O-">O-</option>
+    </select>
+
+    <label for="profile-emergency-name">Emergency Contact Name</label>
+    <input id="profile-emergency-name" type="text" maxlength="120">
+
+    <label for="profile-emergency-relationship">Relationship to Student</label>
+    <input id="profile-emergency-relationship" type="text" maxlength="60">
+
+    <label for="profile-emergency-phone">Emergency Contact Number</label>
+    <input id="profile-emergency-phone" type="tel" maxlength="30">
+
+    <button type="submit" id="save-student-profile">
+      Save Profile Information
+    </button>
+
+    <p id="student-profile-message" class="message" role="status"></p>
+  </form>
+
 
         <div id="student-grades-list">
           <p>
