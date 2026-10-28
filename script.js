@@ -1003,10 +1003,20 @@ function renderClassRoster() {
         <p>${escapeHTML(student.grade_level || "No grade level")} · ${escapeHTML(student.section || "No section assigned")}</p>
       </div>
 
-      <button
-        type="button"
-        data-view-student="${escapeHTML(student.id)}"
-      >View Record</button>
+
+<div class="student-card-actions">
+  <button
+    type="button"
+    data-view-student="${escapeHTML(student.id)}"
+  >View Record</button>
+
+  <button
+    type="button"
+    data-edit-student="${escapeHTML(student.id)}"
+    class="student-edit-button"
+  >Edit Student</button>
+</div>
+
     </article>
   `).join("");
 }
