@@ -2210,45 +2210,111 @@ async function loadStudentGrades() {
       studentTerms = termData || [];
     }
 
-    container.innerHTML = `
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>School Year</th>
-              <th>Term</th>
-              <th>Subject</th>
-              <th>Grade</th>
-              <th>Evaluation</th>
-            </tr>
-          </thead>
+  
+    const groupedTerms = new Map();
 
-          <tbody>
-            ${studentSubjects.map((subject) => {
-              const term = studentTerms.find(
-                (item) => String(item.id) === String(subject.term_id)
-              );
+    studentSubjects.forEach((subject) => {
+      const term = studentTerms.find(
+        (item) => String(item.id) === String(subject.term_id)
+      );
 
-              const gradeRecord = studentGrades.find(
-                (item) => String(item.subject_id) === String(subject.id)
-              );
+      const termKey = term
+        ? `${term.school_year || "Unknown"}|${term.term_name || "Unknown"}|${term.id}`
+        : `Unknown|Unknown|${subject.term_id ?? "none"}`;
 
-              const grade = gradeRecord?.grade ?? null;
+      if (!groupedTerms.has(termKey)) {
+        groupedTerms.set(termKey, {
+          term,
+          subjects: []
+        });
+      }
 
-              return `
+      groupedTerms.get(termKey).subjects.push(subject);
+    });
+
+    const getTermOrder = (termName) => {
+      const name = String(termName || "").toLowerCase();
+
+      if (name.includes("first")) return 1;
+      if (name.includes("second")) return 2;
+      if (name.includes("third")) return 3;
+
+      return 99;
+    };
+
+    const sortedGroups = [...groupedTerms.values()].sort((a, b) => {
+      const yearA = String(a.term?.school_year || "");
+      const yearB = String(b.term?.school_year || "");
+
+      if (yearA !== yearB) {
+        return yearB.localeCompare(yearA);
+      }
+
+      return getTermOrder(a.term?.term_name) -
+        getTermOrder(b.term?.term_name);
+    });
+
+    container.innerHTML = sortedGroups.map((group) => {
+      const termName = group.term?.term_name || "Term Not Assigned";
+      const schoolYear =
+        group.term?.school_year || "School Year Not Assigned";
+
+      const sortedSubjects = [...group.subjects].sort((a, b) =>
+        String(a.subject_name || "").localeCompare(
+          String(b.subject_name || "")
+        )
+      );
+
+      return `
+        <section class="student-term-card">
+          <div class="student-term-header">
+            <div>
+              <h3>${escapeHTML(termName)}</h3>
+              <p>School Year: ${escapeHTML(schoolYear)}</p>
+            </div>
+
+            <span class="student-subject-count">
+              ${sortedSubjects.length}
+              ${sortedSubjects.length === 1 ? "Subject" : "Subjects"}
+            </span>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
                 <tr>
-                  <td>${escapeHTML(term?.school_year || "Unknown")}</td>
-                  <td>${escapeHTML(term?.term_name || "Unknown")}</td>
-                  <td>${escapeHTML(subject.subject_name || "Unnamed subject")}</td>
-                  <td>${formatGrade(grade)}</td>
-                  <td>${escapeHTML(gradeEvaluation(grade))}</td>
+                  <th>Subject</th>
+                  <th>Grade</th>
+                  <th>Evaluation</th>
                 </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
+              </thead>
+
+              <tbody>
+                ${sortedSubjects.map((subject) => {
+                  const gradeRecord = studentGrades.find(
+                    (item) =>
+                      String(item.subject_id) === String(subject.id)
+                  );
+
+                  const grade = gradeRecord?.grade ?? null;
+
+                  return `
+                    <tr>
+                      <td>${escapeHTML(
+                        subject.subject_name || "Unnamed subject"
+                      )}</td>
+                      <td>${formatGrade(grade)}</td>
+                      <td>${escapeHTML(gradeEvaluation(grade))}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }).join("");
+
   } catch (error) {
     console.error("Student dashboard error:", error);
 
