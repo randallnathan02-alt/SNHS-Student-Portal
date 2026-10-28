@@ -567,7 +567,7 @@ const values = {
       .eq("id", currentUser.id)
       .eq("role", "student")
      .select(
-  "id, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+  "id, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
 )
       .maybeSingle();
 
