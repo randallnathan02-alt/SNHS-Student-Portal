@@ -851,3 +851,29 @@ body:has(#login-section:not([hidden])) footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* Compact action buttons in the class roster */
+.gender-student-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.gender-student-actions button {
+  padding: 5px 8px;
+  font-size: 11px;
+  line-height: 1.3;
+  border-radius: 5px;
+  min-height: 28px;
+  white-space: nowrap;
+}
+
+/* Keep buttons compact on smaller screens */
+@media (max-width: 600px) {
+  .gender-student-actions button {
+    padding: 4px 6px;
+    font-size: 10px;
+    min-height: 25px;
+  }
+}
