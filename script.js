@@ -423,7 +423,7 @@ async function loadDashboard() {
     await supabaseClient
       .from("profiles")
       .select(
-        "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthdate, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+        "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
       )
       .eq("id", currentUser.id)
       .maybeSingle();
@@ -497,7 +497,7 @@ function populateStudentProfile(profile) {
   if (!profile || profile.role !== "student") return;
 
   $("profile-gender").value = profile.gender || "";
-  $("profile-birthdate").value = profile.birthdate || "";
+  $("profile-birthday").value = profile.birthday || "";
   $("profile-blood-type").value = profile.blood_type || "";
   $("profile-emergency-name").value =
     profile.emergency_contact_name || "";
@@ -508,7 +508,7 @@ function populateStudentProfile(profile) {
 
   const hasSavedInformation = [
     profile.gender,
-    profile.birthdate,
+    profile.birthday,
     profile.blood_type,
     profile.emergency_contact_name,
     profile.emergency_contact_relationship,
@@ -544,7 +544,7 @@ studentProfileForm?.addEventListener("submit", async (event) => {
 
   const values = {
     gender: $("profile-gender").value || null,
-    birthdate: $("profile-birthdate").value || null,
+    birthdate: $("profile-birthday").value || null,
     blood_type: $("profile-blood-type").value || null,
     emergency_contact_name:
       $("profile-emergency-name").value.trim() || null,
@@ -563,9 +563,9 @@ studentProfileForm?.addEventListener("submit", async (event) => {
       .update(values)
       .eq("id", currentUser.id)
       .eq("role", "student")
-      .select(
-        "id, gender, birthdate, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
-      )
+     .select(
+  "id, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+)
       .maybeSingle();
 
     if (error) throw error;
@@ -814,7 +814,7 @@ async function loadStudents() {
     .from("profiles")
    
 .select(
-  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthdate, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
+  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_phone"
 )
 
     .eq("role", "student")
@@ -1097,7 +1097,7 @@ $("record-profile-content").innerHTML = [
   renderProfileField("Section", student.section),
   renderProfileField("Gender", student.gender),
   
-renderProfileField("Birthdate", student.birthdate),
+renderProfileField("Birthday", student.birthday),
 renderProfileField("Blood Type", student.blood_type),
 renderProfileField(
   "Emergency Contact Name",
