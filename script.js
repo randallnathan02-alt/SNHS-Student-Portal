@@ -1114,34 +1114,70 @@ $("record-profile-content").innerHTML = [
   renderProfileField("Gender", student.gender),
   renderProfileField("Birthday", student.birthday),
   renderProfileField("Blood Type", student.blood_type),
-  renderProfileField(
-    "Emergency Contact Name",
-    student.emergency_contact_name
-  ),
-  renderProfileField(
-    "Emergency Contact Relationship",
-    student.emergency_contact_relationship
-  ),
-  renderProfileField(
-    "Emergency Contact Number",
-    student.emergency_contact_number
-  ),
+  renderProfileField("Emergency Contact Name", student.emergency_contact_name),
+  renderProfileField("Emergency Contact Relationship", student.emergency_contact_relationship),
+  renderProfileField("Emergency Contact Number", student.emergency_contact_number),
+  renderProfileField("Account Status", student.is_active ? "Active" : "Inactive"),
+  renderProfileField("Profile ID", student.id),
 
   `
     <div class="record-info-item">
-      <label for="admin-edit-gender">Edit Gender</label>
+      <h4>Edit Student Information</h4>
+
+      <label for="admin-edit-first-name">First Name</label>
+      <input id="admin-edit-first-name" type="text"
+        value="${escapeHTML(student.first_name || "")}">
+
+      <label for="admin-edit-last-name">Last Name</label>
+      <input id="admin-edit-last-name" type="text"
+        value="${escapeHTML(student.last_name || "")}">
+
+      <label for="admin-edit-grade-level">Grade Level</label>
+      <input id="admin-edit-grade-level" type="text"
+        value="${escapeHTML(student.grade_level || "")}">
+
+      <label for="admin-edit-section">Section</label>
+      <input id="admin-edit-section" type="text"
+        value="${escapeHTML(student.section || "")}">
+
+      <label for="admin-edit-gender">Gender</label>
       <select id="admin-edit-gender">
-        <option value="">Not specified</option>
+        <option value="" ${!student.gender ? "selected" : ""}>Not specified</option>
         <option value="Male" ${student.gender === "Male" ? "selected" : ""}>Male</option>
         <option value="Female" ${student.gender === "Female" ? "selected" : ""}>Female</option>
         <option value="Prefer not to say" ${student.gender === "Prefer not to say" ? "selected" : ""}>Prefer not to say</option>
       </select>
-      <button type="button" id="save-admin-gender">Save Gender</button>
-      <p id="admin-gender-message" role="status"></p>
+
+      <label for="admin-edit-birthday">Birthday</label>
+      <input id="admin-edit-birthday" type="date"
+        value="${escapeHTML(student.birthday || "")}">
+
+      <label for="admin-edit-blood-type">Blood Type</label>
+      <select id="admin-edit-blood-type">
+        ${["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(type =>
+          `<option value="${type}" ${student.blood_type === type ? "selected" : ""}>${type || "Not specified"}</option>`
+        ).join("")}
+      </select>
+
+      <label for="admin-edit-emergency-name">Emergency Contact Name</label>
+      <input id="admin-edit-emergency-name" type="text"
+        value="${escapeHTML(student.emergency_contact_name || "")}">
+
+      <label for="admin-edit-emergency-relationship">Emergency Contact Relationship</label>
+      <input id="admin-edit-emergency-relationship" type="text"
+        value="${escapeHTML(student.emergency_contact_relationship || "")}">
+
+      <label for="admin-edit-emergency-number">Emergency Contact Number</label>
+      <input id="admin-edit-emergency-number" type="tel"
+        value="${escapeHTML(student.emergency_contact_number || "")}">
+
+      <button type="button" id="save-admin-student-info">
+        Save Student Information
+      </button>
+
+      <p id="admin-student-info-message" role="status"></p>
     </div>
-  `,
-  renderProfileField("Account Status", student.is_active ? "Active" : "Inactive"),
-  renderProfileField("Profile ID", student.id)
+  `
 ].join("");
 
 
