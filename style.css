@@ -766,3 +766,88 @@ body:has(#login-section:not([hidden])) footer {
   color: #ffffff !important;
   border-color: #17178b !important;
 }
+
+/* Class roster: male and female tables side by side */
+.class-roster-gender-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.class-roster-gender-column,
+.class-roster-other {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+  background: var(--card-bg, #ffffff);
+}
+
+.male-roster-heading,
+.female-roster-heading,
+.class-roster-other h3 {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+}
+
+.male-roster-heading {
+  color: #2874c8;
+}
+
+.female-roster-heading {
+  color: #a044ad;
+}
+
+.gender-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.gender-student-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.gender-student-table th,
+.gender-student-table td {
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gender-student-table th {
+  background: #f3f5f8;
+  font-weight: 600;
+}
+
+.gender-student-class {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.gender-student-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.gender-student-actions button {
+  cursor: pointer;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+}
+
+.class-roster-other {
+  margin-top: 20px;
+}
+
+@media (max-width: 850px) {
+  .class-roster-gender-grid {
+    grid-template-columns: 1fr;
+  }
+}
