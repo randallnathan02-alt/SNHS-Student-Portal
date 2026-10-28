@@ -1076,8 +1076,15 @@ async function loadIndividualStudentGrades(student) {
             <td>${escapeHTML(row.subject.grade_level || student.grade_level || "—")}</td>
             <td>${escapeHTML(row.subject.subject_name || "Unnamed subject")}</td>
             <td>${formatGrade(row.grade)}</td>
-            <td>${escapeHTML(row.evaluation)}</td>
-            <td>
+          <td>${escapeHTML(row.evaluation)}</td>
+<td>
+  <button
+    type="button"
+    class="record-edit-grade-button"
+    data-student-id="${escapeHTML(student.id)}"
+    data-subject-id="${escapeHTML(row.subject.id)}"
+  >Edit Grade</button>
+</td>
               <button
                 type="button"
                 class="record-edit-grade-button"
