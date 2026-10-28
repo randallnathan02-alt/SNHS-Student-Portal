@@ -2353,8 +2353,6 @@ if (generalAverage !== null) {
             </div>
 
           </div>
-
-          <div class="table-container">
           <div class="table-container">
             <table>
               <thead>
