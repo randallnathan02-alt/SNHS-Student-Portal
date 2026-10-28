@@ -1128,12 +1128,6 @@ if (rows.length === 0) {
                 <td>${escapeHTML(row.evaluation)}</td>
 
                 <td>
-                  <button
-                    type="button"
-                    class="record-edit-grade-button"
-                    data-student-id="${escapeHTML(student.id)}"
-                    data-subject-id="${escapeHTML(row.subject.id)}"
-                  >Edit Grade</button>
                 </td>
               </tr>
             `).join("")}
