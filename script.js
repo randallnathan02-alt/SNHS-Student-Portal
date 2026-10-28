@@ -830,7 +830,23 @@ function renderClassRoster() {
 
   populateRosterFilters();
 
-  const filteredStudents = getFilteredStudents();
+  const filteredStudents = getFilteredStudents().sort((a, b) => {
+  const lastNameComparison = String(a.last_name || "").localeCompare(
+    String(b.last_name || ""),
+    undefined,
+    { sensitivity: "base" }
+  );
+
+  if (lastNameComparison !== 0) {
+    return lastNameComparison;
+  }
+
+  return String(a.first_name || "").localeCompare(
+    String(b.first_name || ""),
+    undefined,
+    { sensitivity: "base" }
+  );
+});
 
   count.textContent =
     `${filteredStudents.length} student${filteredStudents.length === 1 ? "" : "s"}`;
