@@ -982,8 +982,8 @@ function getFilteredStudents() {
 }
 
 
+
 function renderClassRoster() {
-  console.log("NEW SIDE-BY-SIDE ROSTER FUNCTION IS RUNNING");
   const roster = $("class-roster-list");
   const count = $("roster-count");
 
@@ -993,117 +993,234 @@ function renderClassRoster() {
 
   const filteredStudents = getFilteredStudents();
 
-  function getGender(student) {
+  // Sort alphabetically by last name, then first name.
+  filteredStudents.sort((a, b) => {
+    const lastNameCompare = String(a.last_name || "").localeCompare(
+      String(b.last_name || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+
+    if (lastNameCompare !== 0) return lastNameCompare;
+
+    return String(a.first_name || "").localeCompare(
+      String(b.first_name || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+  });
+
+  // Normalize common gender labels.
+  function getRosterGender(student) {
     const gender = String(student.gender || "")
       .trim()
       .toLowerCase();
 
-    if (["male", "m"].includes(gender)) return "male";
-    if (["female", "f"].includes(gender)) return "female";
+    if (["male", "m", "man", "boy"].includes(gender)) {
+      return "male";
+    }
 
-    return "other";
+    if (["female", "f", "woman", "girl"].includes(gender)) {
+      return "female";
+    }
+
+    return "unspecified";
   }
 
-  function sortByLastName(list) {
-    return [...list].sort((a, b) =>
-      String(a.last_name || "").localeCompare(
-        String(b.last_name || ""),
-        undefined,
-        { sensitivity: "base" }
-      )
-    );
-  }
-
-  const maleStudents = sortByLastName(
-    filteredStudents.filter((student) => getGender(student) === "male")
+  const maleStudents = filteredStudents.filter(
+    student => getRosterGender(student) === "male"
   );
 
-  const femaleStudents = sortByLastName(
-    filteredStudents.filter((student) => getGender(student) === "female")
+  const femaleStudents = filteredStudents.filter(
+    student => getRosterGender(student) === "female"
   );
 
-  const otherStudents = sortByLastName(
-    filteredStudents.filter((student) => getGender(student) === "other")
+  const unspecifiedStudents = filteredStudents.filter(
+    student => getRosterGender(student) === "unspecified"
   );
 
+  // Update the existing roster count.
   count.textContent =
-    `${filteredStudents.length} student${filteredStudents.length === 1 ? "" : "s"}`;
+    `${filteredStudents.length} active student` +
+    `${filteredStudents.length === 1 ? "" : "s"}`;
 
-  if (filteredStudents.length === 0) {
-    roster.innerHTML =
-      '<p class="empty-state">No active students match these filters.</p>';
-    return;
-  }
+  // Build compact summary cards.
+  const summaryHTML = `
+    <div class="roster-summary-grid">
+      <article class="roster-summary-card roster-summary-total">
+        <div class="roster-summary-icon" aria-hidden="true">👥</div>
+        <div>
+          <p>Total Active Students</p>
+          <strong>${filteredStudents.length}</strong>
+          <span>Matching current filters</span>
+        </div>
+      </article>
 
-  function renderStudentRows(list) {
-    if (list.length === 0) {
+      <article class="roster-summary-card roster-summary-male">
+        <div class="roster-summary-icon" aria-hidden="true">♂</div>
+        <div>
+          <p>Male Students</p>
+          <strong>${maleStudents.length}</strong>
+          <span>Matching current filters</span>
+        </div>
+      </article>
+
+      <article class="roster-summary-card roster-summary-female">
+        <div class="roster-summary-icon" aria-hidden="true">♀</div>
+        <div>
+          <p>Female Students</p>
+          <strong>${femaleStudents.length}</strong>
+          <span>Matching current filters</span>
+        </div>
+      </article>
+    </div>
+  `;
+
+  // Render each student while preserving existing action attributes.
+  function renderStudentCards(studentList) {
+    if (studentList.length === 0) {
       return `
-        <tr>
-          <td colspan="3">No students in this group.</td>
-        </tr>
+        <div class="roster-empty-message">
+          <span aria-hidden="true">📋</span>
+          <p>No students found in this list.</p>
+        </div>
       `;
     }
 
-    return list.map((student) => `
-      <tr>
-        <td>${escapeHTML(student.student_id || "Not assigned")}</td>
-        <td>
-          ${escapeHTML(
-            `${student.last_name || ""}, ${student.first_name || ""}`
-              .trim()
-              .replace(/^,\s*/, "") || "Unnamed student"
-          )}
-          <div class="gender-student-class">
-            ${escapeHTML(student.grade_level || "No grade level")}
-            · ${escapeHTML(student.section || "No section assigned")}
+    return studentList.map(student => {
+      const fullName =
+        getStudentFullName(student) || "Unnamed student";
+
+      const studentId = student.student_id || "Not assigned";
+      const grade = student.grade_level || "No grade level";
+      const section = student.section || "No section assigned";
+
+      const initials = [
+        student.first_name,
+        student.last_name
+      ]
+        .filter(Boolean)
+        .map(name => String(name).trim().charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) || "ST";
+
+      return `
+        <article class="student-roster-card">
+          <div class="student-avatar" aria-hidden="true">
+            ${escapeHTML(initials)}
           </div>
-        </td>
-        <td>
-          <div class="gender-student-actions">
+
+          <div class="student-card-info">
+            <h4>${escapeHTML(fullName)}</h4>
+
+            <p class="student-roster-id">
+              ID: ${escapeHTML(studentId)}
+            </p>
+
+            <p class="student-roster-class">
+              ${escapeHTML(grade)}
+              <span aria-hidden="true">·</span>
+              ${escapeHTML(section)}
+            </p>
+          </div>
+
+          <div class="student-card-actions">
             <button
               type="button"
+              class="roster-action-view"
               data-view-student="${escapeHTML(student.id)}"
+              aria-label="View record for ${escapeHTML(fullName)}"
             >View Record</button>
 
             <button
               type="button"
-              data-edit-student="${escapeHTML(student.id)}"
-              class="student-edit-button"
-            >Edit Student</button>
-
-            <button
-              type="button"
-              class="student-deactivate-button"
+              class="student-deactivate-button roster-action-remove"
               data-deactivate-student="${escapeHTML(student.id)}"
-              aria-label="Remove ${escapeHTML(getStudentFullName(student))} from the active class roster"
-            >Remove from Class</button>
+              aria-label="Remove ${escapeHTML(fullName)} from the active class roster"
+            >Remove</button>
           </div>
-        </td>
-      </tr>
-    `).join("");
+        </article>
+      `;
+    }).join("");
   }
 
-  function renderGenderTable(title, list, className) {
-    return `
-      <section class="class-roster-gender-column">
-        <h3 class="${className}">${title} (${list.length})</h3>
-        <div class="gender-table-scroll">
-          <table class="gender-student-table">
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Student Name</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${renderStudentRows(list)}
-            </tbody>
-          </table>
+  // Two main lists side by side.
+  const genderListsHTML = `
+    <div class="class-roster-gender-grid">
+
+      <section class="gender-roster-panel male-roster-panel">
+        <div class="gender-roster-heading">
+          <div class="gender-roster-title">
+            <span class="gender-roster-symbol" aria-hidden="true">♂</span>
+            <div>
+              <h3>Male Students</h3>
+              <p>Class roster</p>
+            </div>
+          </div>
+
+          <span class="gender-roster-count">
+            ${maleStudents.length}
+          </span>
+        </div>
+
+        <div class="gender-roster-list">
+          ${renderStudentCards(maleStudents)}
         </div>
       </section>
-    `;
-  }
+
+      <section class="gender-roster-panel female-roster-panel">
+        <div class="gender-roster-heading">
+          <div class="gender-roster-title">
+            <span class="gender-roster-symbol" aria-hidden="true">♀</span>
+            <div>
+              <h3>Female Students</h3>
+              <p>Class roster</p>
+            </div>
+          </div>
+
+          <span class="gender-roster-count">
+            ${femaleStudents.length}
+          </span>
+        </div>
+
+        <div class="gender-roster-list">
+          ${renderStudentCards(femaleStudents)}
+        </div>
+      </section>
+
+    </div>
+  `;
+
+  // Keep students with missing or unrecognized gender visible.
+  const unspecifiedHTML = unspecifiedStudents.length
+    ? `
+      <section class="gender-roster-panel unspecified-roster-panel">
+        <div class="gender-roster-heading">
+          <div class="gender-roster-title">
+            <span class="gender-roster-symbol" aria-hidden="true">•</span>
+            <div>
+              <h3>Gender Not Specified</h3>
+              <p>Update student profiles when appropriate</p>
+            </div>
+          </div>
+
+          <span class="gender-roster-count">
+            ${unspecifiedStudents.length}
+          </span>
+        </div>
+
+        <div class="gender-roster-list">
+          ${renderStudentCards(unspecifiedStudents)}
+        </div>
+      </section>
+    `
+    : "";
+
+  roster.innerHTML =
+    summaryHTML + genderListsHTML + unspecifiedHTML;
+}
+
 
   roster.innerHTML = `
     <div class="class-roster-gender-grid">
