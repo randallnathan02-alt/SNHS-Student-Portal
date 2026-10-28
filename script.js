@@ -983,6 +983,7 @@ function getFilteredStudents() {
 
 
 function renderClassRoster() {
+  console.log("NEW SIDE-BY-SIDE ROSTER FUNCTION IS RUNNING");
   const roster = $("class-roster-list");
   const count = $("roster-count");
 
