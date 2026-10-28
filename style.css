@@ -807,3 +807,449 @@ body:has(#login-section:not([hidden])) footer {
     transform: none;
   }
 }
+
+/* =========================================================
+   SNHS STUDENT PORTAL - CLASS ROSTER REDESIGN
+   Append this section to the bottom of style.css
+   ========================================================= */
+
+.roster-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 22px;
+}
+
+.roster-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e3eaf2;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(16, 45, 82, 0.055);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.roster-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 20px rgba(16, 45, 82, 0.09);
+}
+
+.roster-summary-icon {
+  display: flex;
+  flex: 0 0 46px;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #edf3fb;
+  color: #173c68;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.roster-summary-card > div:last-child {
+  min-width: 0;
+}
+
+.roster-summary-card p {
+  margin: 0 0 4px;
+  color: #5e6c7d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.roster-summary-card strong {
+  display: block;
+  color: #173453;
+  font-size: 27px;
+  line-height: 1.15;
+  font-weight: 750;
+}
+
+.roster-summary-card span:not(.gender-roster-count) {
+  display: block;
+  margin-top: 4px;
+  color: #8793a2;
+  font-size: 10px;
+}
+
+.roster-summary-male .roster-summary-icon {
+  background: #eaf2ff;
+  color: #245db6;
+}
+
+.roster-summary-female .roster-summary-icon {
+  background: #fff0f6;
+  color: #b83270;
+}
+
+/* Male and female panels */
+.class-roster-gender-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 18px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.gender-roster-panel {
+  min-width: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e1e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(16, 45, 82, 0.045);
+}
+
+.gender-roster-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px;
+  background: #f7f9fc;
+  border-bottom: 1px solid #e6ebf2;
+}
+
+.male-roster-panel .gender-roster-heading {
+  border-top: 3px solid #3478cf;
+}
+
+.female-roster-panel .gender-roster-heading {
+  border-top: 3px solid #d65a91;
+}
+
+.unspecified-roster-panel {
+  margin-top: 18px;
+}
+
+.gender-roster-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gender-roster-symbol {
+  display: flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #eaf2ff;
+  color: #245db6;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.female-roster-panel .gender-roster-symbol {
+  background: #fff0f6;
+  color: #b83270;
+}
+
+.gender-roster-title h3 {
+  margin: 0;
+  color: #173453;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.gender-roster-title p {
+  margin: 4px 0 0;
+  color: #8793a2;
+  font-size: 11px;
+}
+
+.gender-roster-count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 20px;
+  background: #eaf2ff;
+  color: #245db6;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.female-roster-panel .gender-roster-count {
+  background: #fff0f6;
+  color: #b83270;
+}
+
+.gender-roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 5px 12px;
+}
+
+/* Compact student rows */
+.gender-roster-list .student-roster-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 2px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #edf0f5;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.gender-roster-list .student-roster-card:last-child {
+  border-bottom: 0;
+}
+
+.gender-roster-list .student-roster-card:hover {
+  background: #f9fbfe;
+}
+
+.student-avatar {
+  display: flex;
+  flex: 0 0 37px;
+  align-items: center;
+  justify-content: center;
+  width: 37px;
+  height: 37px;
+  border-radius: 50%;
+  background: #eaf0f8;
+  color: #21466f;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.3px;
+}
+
+.female-roster-panel .student-avatar {
+  background: #fff0f6;
+  color: #a82f68;
+}
+
+.student-card-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.gender-roster-list .student-card-info h4 {
+  overflow-wrap: anywhere;
+  margin: 0 0 4px;
+  color: #23364c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.gender-roster-list .student-card-info p {
+  overflow-wrap: anywhere;
+  margin: 3px 0 0;
+  color: #788698;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.gender-roster-list .student-roster-id {
+  color: #526b87;
+}
+
+.gender-roster-list .student-roster-class {
+  color: #788698;
+}
+
+/* Small, consistent action buttons */
+.gender-roster-list .student-card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  margin: 0;
+}
+
+.gender-roster-list .student-card-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 68px;
+  min-height: 27px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 5px 8px !important;
+  border: 1px solid #d8e2ef;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #244b77;
+  font-size: 10px !important;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.gender-roster-list .student-card-actions .roster-action-view:hover {
+  border-color: #245db6;
+  background: #edf4ff;
+}
+
+.gender-roster-list .student-card-actions .roster-action-remove {
+  border-color: #f0d5d9;
+  background: #fff8f8;
+  color: #b42332;
+}
+
+.gender-roster-list .student-card-actions .roster-action-remove:hover {
+  border-color: #d94b59;
+  background: #fff0f1;
+}
+
+.gender-roster-list .student-card-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.roster-empty-message {
+  padding: 28px 12px;
+  text-align: center;
+  color: #8793a2;
+}
+
+.roster-empty-message span {
+  font-size: 25px;
+}
+
+.roster-empty-message p {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+/* Existing roster filters: consistent sizing */
+#roster-search,
+#roster-grade-filter,
+#roster-section-filter {
+  min-height: 40px;
+  border: 1px solid #d7e0eb;
+  border-radius: 9px;
+  background-color: #ffffff;
+  color: #23364c;
+  font-size: 13px;
+}
+
+#roster-search {
+  padding: 9px 12px;
+}
+
+#roster-grade-filter,
+#roster-section-filter {
+  padding: 8px 30px 8px 10px;
+}
+
+#roster-search:focus,
+#roster-grade-filter:focus,
+#roster-section-filter:focus {
+  outline: none;
+  border-color: #3478cf;
+  box-shadow: 0 0 0 3px rgba(52, 120, 207, 0.12);
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .roster-summary-grid {
+    gap: 10px;
+  }
+
+  .roster-summary-card {
+    gap: 9px;
+    padding: 13px;
+  }
+
+  .roster-summary-icon {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
+  }
+
+  .roster-summary-card strong {
+    font-size: 23px;
+  }
+
+  .class-roster-gender-grid {
+    gap: 12px;
+  }
+
+  .gender-roster-list {
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .gender-roster-list .student-roster-card {
+    flex-wrap: wrap;
+  }
+
+  .gender-roster-list .student-card-actions {
+    flex-direction: row;
+    width: 100%;
+    padding-left: 47px;
+  }
+}
+
+@media (max-width: 620px) {
+  .roster-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .roster-summary-card {
+    padding: 12px 14px;
+  }
+
+  .roster-summary-card strong {
+    font-size: 22px;
+  }
+
+  .class-roster-gender-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .gender-roster-list .student-roster-card {
+    flex-wrap: nowrap;
+  }
+
+  .gender-roster-list .student-card-actions {
+    flex-direction: column;
+    width: auto;
+    padding-left: 0;
+  }
+
+  .gender-roster-list .student-card-actions button {
+    min-width: 64px;
+    min-height: 26px !important;
+    padding: 5px 7px !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roster-summary-card {
+    transition: none;
+  }
+
+  .roster-summary-card:hover {
+    transform: none;
+  }
+}
