@@ -1298,12 +1298,18 @@ function renderEvaluationStat(label, value) {
   `;
 }
 
+
 async function openStudentRecord(student) {
   if (currentProfile?.role !== "admin") return;
 
   currentRecordStudentId = student.id;
 
   const recordPanel = $("student-record-panel");
+  if (!recordPanel) {
+    console.error("Student record panel was not found.");
+    return;
+  }
+
   recordPanel.hidden = false;
 
   $("record-student-name").textContent =
@@ -1446,8 +1452,8 @@ async function openStudentRecord(student) {
       </div>
     `
   ].join("");
-}
 
+  // Keep the following code INSIDE this async function.
   setActiveRecordTab("profile");
 
   $("record-grades-content").innerHTML =
@@ -1455,111 +1461,136 @@ async function openStudentRecord(student) {
 
   $("record-evaluation-content").innerHTML = "";
 
-  recordPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  recordPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 
   await loadIndividualStudentGrades(student);
 }
 
 
-$("record-profile-content")?.addEventListener("click", async (event) => {
-  const button = event.target.closest("#save-admin-student-info");
-  if (!button) return;
-
-  if (currentProfile?.role !== "admin" || !currentRecordStudentId) {
-    alert("Administrator access is required.");
-    return;
-  }
-
-  const message = $("admin-student-info-message");
-
-  const firstName = $("admin-edit-first-name").value.trim();
-  const lastName = $("admin-edit-last-name").value.trim();
-  const gradeLevel = $("admin-edit-grade-level").value.trim();
-  const section = $("admin-edit-section").value.trim();
-
-  if (!firstName || !lastName) {
-    showMessage(message, "First name and last name are required.", true);
-    return;
-  }
-
-  const updates = {
-    first_name: firstName,
-    last_name: lastName,
-    grade_level: gradeLevel || null,
-    section: section || null,
-    gender: $("admin-edit-gender").value || null,
-    birthday: $("admin-edit-birthday").value || null,
-    blood_type: $("admin-edit-blood-type").value || null,
-    emergency_contact_name:
-      $("admin-edit-emergency-name").value.trim() || null,
-    emergency_contact_relationship:
-      $("admin-edit-emergency-relationship").value.trim() || null,
-    emergency_contact_number:
-      $("admin-edit-emergency-number").value.trim() || null
-  };
-
-  button.disabled = true;
-  button.textContent = "Saving...";
-
-  try {
-    const { data, error } = await supabaseClient
-      .from("profiles")
-      .update(updates)
-      .eq("id", currentRecordStudentId)
-      .eq("role", "student")
-      .select(
-        "id, first_name, last_name, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
-      )
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error(
-        "No changes were saved. Check the administrator's database permissions."
-      );
-    }
-
-    const student = students.find(
-      (item) => String(item.id) === String(data.id)
+// Save edited student information.
+$("record-profile-content")?.addEventListener(
+  "click",
+  async (event) => {
+    const button = event.target.closest(
+      "#save-admin-student-info"
     );
 
-    if (student) {
-      Object.assign(student, data);
+    if (!button) return;
+
+    if (
+      currentProfile?.role !== "admin" ||
+      !currentRecordStudentId
+    ) {
+      alert("Administrator access is required.");
+      return;
     }
 
-    await loadStudents();
+    const message = $("admin-student-info-message");
 
-    const updatedStudent = students.find(
-      (item) => String(item.id) === String(data.id)
-    );
+    const firstName = $("admin-edit-first-name").value.trim();
+    const lastName = $("admin-edit-last-name").value.trim();
+    const gradeLevel = $("admin-edit-grade-level").value.trim();
+    const section = $("admin-edit-section").value.trim();
 
-    if (updatedStudent) {
-      await openStudentRecord(updatedStudent);
-    }
-
-    alert("Student information updated successfully.");
-  } catch (error) {
-    console.error("Save student information error:", error);
-
-    const currentMessage = $("admin-student-info-message");
-
-    if (currentMessage) {
+    if (!firstName || !lastName) {
       showMessage(
-        currentMessage,
-        `Could not save student information: ${error.message}`,
+        message,
+        "First name and last name are required.",
         true
       );
-    } else {
-      alert(`Could not save student information: ${error.message}`);
+      return;
     }
-  } finally {
-    button.disabled = false;
-    button.textContent = "Save Student Information";
+
+    const updates = {
+      first_name: firstName,
+      last_name: lastName,
+      grade_level: gradeLevel || null,
+      section: section || null,
+      gender: $("admin-edit-gender").value || null,
+      birthday: $("admin-edit-birthday").value || null,
+      blood_type: $("admin-edit-blood-type").value || null,
+      emergency_contact_name:
+        $("admin-edit-emergency-name").value.trim() || null,
+      emergency_contact_relationship:
+        $("admin-edit-emergency-relationship").value.trim() || null,
+      emergency_contact_number:
+        $("admin-edit-emergency-number").value.trim() || null
+    };
+
+    button.disabled = true;
+    button.textContent = "Saving...";
+
+    try {
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .update(updates)
+        .eq("id", currentRecordStudentId)
+        .eq("role", "student")
+        .select(
+          "id, first_name, last_name, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
+        )
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error(
+          "No changes were saved. Check administrator database permissions."
+        );
+      }
+
+      const studentId = data.id;
+
+      const student = students.find(
+        (item) => String(item.id) === String(studentId)
+      );
+
+      if (student) {
+        Object.assign(student, data);
+      }
+
+      await loadStudents();
+
+      const updatedStudent = students.find(
+        (item) => String(item.id) === String(studentId)
+      );
+
+      if (updatedStudent) {
+        await openStudentRecord(updatedStudent);
+      }
+
+      alert("Student information updated successfully.");
+    } catch (error) {
+      console.error(
+        "Save student information error:",
+        error
+      );
+
+      const currentMessage = $("admin-student-info-message");
+
+      if (currentMessage) {
+        showMessage(
+          currentMessage,
+          `Could not save student information: ${error.message}`,
+          true
+        );
+      } else {
+        alert(
+          `Could not save student information: ${error.message}`
+        );
+      }
+    } finally {
+      button.disabled = false;
+      button.textContent = "Save Student Information";
+    }
   }
-});
+);
+
 
 
 async function loadIndividualStudentGrades(student) {
