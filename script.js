@@ -981,6 +981,7 @@ function getFilteredStudents() {
   });
 }
 
+
 function renderClassRoster() {
   const roster = $("class-roster-list");
   const count = $("roster-count");
@@ -989,29 +990,40 @@ function renderClassRoster() {
 
   populateRosterFilters();
 
+  const filteredStudents = getFilteredStudents();
 
-const filteredStudents = getFilteredStudents().sort((a, b) => {
-  const genderOrder = {
-    male: 0,
-    female: 1
-  };
+  function getGender(student) {
+    const gender = String(student.gender || "")
+      .trim()
+      .toLowerCase();
 
-  const genderA =
-    genderOrder[String(a.gender || "").trim().toLowerCase()] ?? 2;
+    if (["male", "m"].includes(gender)) return "male";
+    if (["female", "f"].includes(gender)) return "female";
 
-  const genderB =
-    genderOrder[String(b.gender || "").trim().toLowerCase()] ?? 2;
-
-  if (genderA !== genderB) {
-    return genderA - genderB;
+    return "other";
   }
 
-  return String(a.last_name || "").localeCompare(
-    String(b.last_name || ""),
-    undefined,
-    { sensitivity: "base" }
+  function sortByLastName(list) {
+    return [...list].sort((a, b) =>
+      String(a.last_name || "").localeCompare(
+        String(b.last_name || ""),
+        undefined,
+        { sensitivity: "base" }
+      )
+    );
+  }
+
+  const maleStudents = sortByLastName(
+    filteredStudents.filter((student) => getGender(student) === "male")
   );
-});
+
+  const femaleStudents = sortByLastName(
+    filteredStudents.filter((student) => getGender(student) === "female")
+  );
+
+  const otherStudents = sortByLastName(
+    filteredStudents.filter((student) => getGender(student) === "other")
+  );
 
   count.textContent =
     `${filteredStudents.length} student${filteredStudents.length === 1 ? "" : "s"}`;
@@ -1022,43 +1034,104 @@ const filteredStudents = getFilteredStudents().sort((a, b) => {
     return;
   }
 
-  roster.innerHTML = filteredStudents.map((student) => `
-    <article class="student-roster-card">
-      <div class="student-card-info">
-        <h4>${escapeHTML(
-  `${student.last_name || ""}, ${student.first_name || ""}`.trim().replace(/^,\s*/, "") ||
-  "Unnamed student"
-)}</h4>
-        <p>Student ID: ${escapeHTML(student.student_id || "Not assigned")}</p>
-        <p>${escapeHTML(student.grade_level || "No grade level")} · ${escapeHTML(student.section || "No section assigned")}</p>
-      </div>
+  function renderStudentRows(list) {
+    if (list.length === 0) {
+      return `
+        <tr>
+          <td colspan="3">No students in this group.</td>
+        </tr>
+      `;
+    }
 
+    return list.map((student) => `
+      <tr>
+        <td>${escapeHTML(student.student_id || "Not assigned")}</td>
+        <td>
+          ${escapeHTML(
+            `${student.last_name || ""}, ${student.first_name || ""}`
+              .trim()
+              .replace(/^,\s*/, "") || "Unnamed student"
+          )}
+          <div class="gender-student-class">
+            ${escapeHTML(student.grade_level || "No grade level")}
+            · ${escapeHTML(student.section || "No section assigned")}
+          </div>
+        </td>
+        <td>
+          <div class="gender-student-actions">
+            <button
+              type="button"
+              data-view-student="${escapeHTML(student.id)}"
+            >View Record</button>
 
+            <button
+              type="button"
+              data-edit-student="${escapeHTML(student.id)}"
+              class="student-edit-button"
+            >Edit Student</button>
 
-<div class="student-card-actions">
-  <button
-    type="button"
-    data-view-student="${escapeHTML(student.id)}"
-  >View Record</button>
+            <button
+              type="button"
+              class="student-deactivate-button"
+              data-deactivate-student="${escapeHTML(student.id)}"
+              aria-label="Remove ${escapeHTML(getStudentFullName(student))} from the active class roster"
+            >Remove from Class</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
+  }
 
-  <button
-    type="button"
-    data-edit-student="${escapeHTML(student.id)}"
-    class="student-edit-button"
-  >Edit Student</button>
+  function renderGenderTable(title, list, className) {
+    return `
+      <section class="class-roster-gender-column">
+        <h3 class="${className}">${title} (${list.length})</h3>
+        <div class="gender-table-scroll">
+          <table class="gender-student-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderStudentRows(list)}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
 
-  <button
-    type="button"
-    class="student-deactivate-button"
-    data-deactivate-student="${escapeHTML(student.id)}"
-    aria-label="Remove ${escapeHTML(getStudentFullName(student))} from the active class roster"
-  >Remove from Class</button>
-</div>
+  roster.innerHTML = `
+    <div class="class-roster-gender-grid">
+      ${renderGenderTable("Male Students", maleStudents, "male-roster-heading")}
+      ${renderGenderTable("Female Students", femaleStudents, "female-roster-heading")}
+    </div>
 
-
-    </article>
-  `).join("");
+    ${otherStudents.length > 0 ? `
+      <section class="class-roster-other">
+        <h3>Unspecified Gender (${otherStudents.length})</h3>
+        <div class="gender-table-scroll">
+          <table class="gender-student-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderStudentRows(otherStudents)}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ` : ""}
+  `;
 }
+
 
 $("roster-grade-filter")?.addEventListener("change", () => {
   populateRosterFilters();
