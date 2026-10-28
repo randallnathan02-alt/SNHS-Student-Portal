@@ -737,18 +737,32 @@ body:has(#login-section:not([hidden])) footer {
   box-shadow: none !important;
 }
 
-/* Hover and selected tab */
+
+/* FIX: Student Record Tab Button Visibility */
+#student-record-panel .record-tabs button {
+  background: #17178b !important;
+  background-color: #17178b !important;
+  color: #ffffff !important;
+  border: 1px solid #17178b !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Hover and active tab */
 #student-record-panel .record-tabs button:hover,
 #student-record-panel .record-tabs button.active,
 #student-record-panel .record-tabs button[aria-selected="true"] {
   background: #08085b !important;
   background-color: #08085b !important;
   color: #ffffff !important;
-  border-color: #08085b !important;
+  border-color: #f4d900 !important;
+  opacity: 1 !important;
 }
 
-/* Keep tab labels white */
-#student-record-panel .record-tabs button * {
+/* Override secondary-button styling on these tabs */
+#student-record-panel .record-tabs button.secondary-button {
+  background: #17178b !important;
+  background-color: #17178b !important;
   color: #ffffff !important;
-  background-color: transparent !important;
+  border-color: #17178b !important;
 }
