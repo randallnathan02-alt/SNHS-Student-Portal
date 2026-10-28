@@ -1029,12 +1029,19 @@ $("roster-grade-filter")?.addEventListener("change", () => {
 $("roster-section-filter")?.addEventListener("change", renderClassRoster);
 $("roster-search")?.addEventListener("input", renderClassRoster);
 
+
 $("class-roster-list")?.addEventListener("click", async (event) => {
-  const button = event.target.closest("[data-view-student]");
+  const button = event.target.closest(
+    "[data-view-student], [data-edit-student]"
+  );
+
   if (!button) return;
 
+  const studentId =
+    button.dataset.viewStudent || button.dataset.editStudent;
+
   const student = students.find(
-    (item) => String(item.id) === String(button.dataset.viewStudent)
+    (item) => String(item.id) === String(studentId)
   );
 
   if (!student) {
@@ -1042,8 +1049,14 @@ $("class-roster-list")?.addEventListener("click", async (event) => {
     return;
   }
 
-  await openStudentRecord(student);
+  try {
+    await openStudentRecord(student);
+  } catch (error) {
+    console.error("Open student record error:", error);
+    alert("Unable to open the student record. Please try again.");
+  }
 });
+
 
 $("close-student-record")?.addEventListener("click", () => {
   $("student-record-panel").hidden = true;
