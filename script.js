@@ -1125,7 +1125,7 @@ if (rows.length === 0) {
 
                 <td>${formatGrade(row.grade)}</td>
 
-                <td>${escapeHTML(row.evaluation)}</td>
+          <td>${escapeHTML(row.evaluation)}</td>
 <td>
   <button
     type="button"
