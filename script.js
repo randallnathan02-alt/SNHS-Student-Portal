@@ -976,39 +976,36 @@ async function loadIndividualStudentGrades(student) {
     if (enrollmentError) throw enrollmentError;
     if (gradeError) throw gradeError;
 
-    const studentGrades = gradeData || [];
+const studentGrades = gradeData || [];
 
-    const subjectIds = [...new Set([
-      ...(enrollmentData || []).map((item) => item.subject_id),
-      ...studentGrades.map((item) => item.subject_id)
-    ].filter((id) => id !== null && id !== undefined))];
+// Load all subjects assigned to this student's grade level,
+// including subjects without grades yet.
+const { data: subjectData, error: subjectError } =
+  await supabaseClient
+    .from("subjects")
+    .select("id, term_id, subject_name, grade_level")
+    .eq("grade_level", student.grade_level)
+    .order("subject_name");
 
-    if (subjectIds.length === 0) {
-      gradesContainer.innerHTML =
-        "<p>No subjects or grades are currently recorded for this student.</p>";
+if (subjectError) throw subjectError;
 
-      evaluationContainer.innerHTML = [
-        renderEvaluationStat("Recorded Subjects", "0"),
-        renderEvaluationStat("Graded Subjects", "0"),
-        renderEvaluationStat("Average Grade", "N/A"),
-        renderEvaluationStat("Passed Subjects", "0"),
-        renderEvaluationStat("Failed Subjects", "0"),
-        renderEvaluationStat("Ungraded Subjects", "0")
-      ].join("");
+const studentSubjects = subjectData || [];
 
-      return;
-    }
+if (studentSubjects.length === 0) {
+  gradesContainer.innerHTML =
+    "<p>No subjects have been created for this student's grade level yet.</p>";
 
-    const { data: subjectData, error: subjectError } =
-      await supabaseClient
-        .from("subjects")
-        .select("id, term_id, subject_name, grade_level")
-        .in("id", subjectIds)
-        .order("subject_name");
+  evaluationContainer.innerHTML = [
+    renderEvaluationStat("Recorded Subjects", "0"),
+    renderEvaluationStat("Graded Subjects", "0"),
+    renderEvaluationStat("Average Grade", "N/A"),
+    renderEvaluationStat("Passed Subjects", "0"),
+    renderEvaluationStat("Failed Subjects", "0"),
+    renderEvaluationStat("Ungraded Subjects", "0")
+  ].join("");
 
-    if (subjectError) throw subjectError;
-
-    const studentSubjects = subjectData || [];
+  return;
+}
 
     const termIds = [...new Set(
       studentSubjects
