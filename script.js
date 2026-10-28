@@ -27,6 +27,7 @@ let terms = [];
 let subjects = [];
 let students = [];
 let grades = [];
+let currentRecordStudentId = null;
 
 // ==================================================
 // GENERAL HELPERS
@@ -421,8 +422,8 @@ async function loadDashboard() {
     await supabaseClient
       .from("profiles")
       .select(
-        "id, student_id, first_name, last_name, role, is_active, grade_level, section"
-      )
+  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender"
+)
       .eq("id", currentUser.id)
       .maybeSingle();
 
@@ -685,8 +686,8 @@ async function loadStudents() {
   const { data, error } = await supabaseClient
     .from("profiles")
     .select(
-      "id, student_id, first_name, last_name, role, is_active, grade_level, section"
-    )
+  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender"
+)
     .eq("role", "student")
     .order("last_name", { ascending: true });
 
@@ -944,6 +945,7 @@ function renderEvaluationStat(label, value) {
 
 async function openStudentRecord(student) {
   if (currentProfile?.role !== "admin") return;
+  currentRecordStudentId = student.id;
 
   const recordPanel = $("student-record-panel");
 
@@ -957,15 +959,31 @@ async function openStudentRecord(student) {
     `${student.grade_level || "No grade level"} | ` +
     `${student.section || "No section assigned"}`;
 
-  $("record-profile-content").innerHTML = [
-    renderProfileField("Student ID", student.student_id),
-    renderProfileField("First Name", student.first_name),
-    renderProfileField("Last Name", student.last_name),
-    renderProfileField("Grade Level", student.grade_level),
-    renderProfileField("Section", student.section),
-    renderProfileField("Account Status", student.is_active ? "Active" : "Inactive"),
-    renderProfileField("Profile ID", student.id)
-  ].join("");
+ 
+$("record-profile-content").innerHTML = [
+  renderProfileField("Student ID", student.student_id),
+  renderProfileField("First Name", student.first_name),
+  renderProfileField("Last Name", student.last_name),
+  renderProfileField("Grade Level", student.grade_level),
+  renderProfileField("Section", student.section),
+  renderProfileField("Gender", student.gender),
+  `
+    <div class="record-info-item">
+      <label for="admin-edit-gender">Edit Gender</label>
+      <select id="admin-edit-gender">
+        <option value="">Not specified</option>
+        <option value="Male" ${student.gender === "Male" ? "selected" : ""}>Male</option>
+        <option value="Female" ${student.gender === "Female" ? "selected" : ""}>Female</option>
+        <option value="Prefer not to say" ${student.gender === "Prefer not to say" ? "selected" : ""}>Prefer not to say</option>
+      </select>
+      <button type="button" id="save-admin-gender">Save Gender</button>
+      <p id="admin-gender-message" role="status"></p>
+    </div>
+  `,
+  renderProfileField("Account Status", student.is_active ? "Active" : "Inactive"),
+  renderProfileField("Profile ID", student.id)
+].join("");
+
 
   setActiveRecordTab("profile");
 
@@ -978,6 +996,64 @@ async function openStudentRecord(student) {
 
   await loadIndividualStudentGrades(student);
 }
+
+$("record-profile-content")?.addEventListener("click", async (event) => {
+  const button = event.target.closest("#save-admin-gender");
+  if (!button) return;
+
+  if (currentProfile?.role !== "admin" || !currentRecordStudentId) {
+    alert("Administrator access is required.");
+    return;
+  }
+
+  const gender = $("admin-edit-gender").value;
+  const message = $("admin-gender-message");
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .update({ gender: gender || null })
+      .eq("id", currentRecordStudentId)
+      .eq("role", "student")
+      .select("id, gender")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      throw new Error(
+        "No changes were saved. Check the administrator's database permissions."
+      );
+    }
+
+    const student = students.find(
+      (item) => String(item.id) === String(data.id)
+    );
+
+    if (student) student.gender = data.gender;
+
+    if (currentProfile && String(currentProfile.id) === String(data.id)) {
+      currentProfile.gender = data.gender;
+    }
+
+    showMessage(message, "Gender updated successfully.");
+    
+    await openStudentRecord(student);
+  } catch (error) {
+    console.error("Save student gender error:", error);
+    showMessage(
+      message,
+      `Could not save gender: ${error.message}`,
+      true
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save Gender";
+  }
+});
 
 async function loadIndividualStudentGrades(student) {
   const gradesContainer = $("record-grades-content");
