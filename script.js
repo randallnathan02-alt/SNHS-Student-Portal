@@ -1221,36 +1221,6 @@ function renderClassRoster() {
     summaryHTML + genderListsHTML + unspecifiedHTML;
 }
 
-
-  roster.innerHTML = `
-    <div class="class-roster-gender-grid">
-      ${renderGenderTable("Male Students", maleStudents, "male-roster-heading")}
-      ${renderGenderTable("Female Students", femaleStudents, "female-roster-heading")}
-    </div>
-
-    ${otherStudents.length > 0 ? `
-      <section class="class-roster-other">
-        <h3>Unspecified Gender (${otherStudents.length})</h3>
-        <div class="gender-table-scroll">
-          <table class="gender-student-table">
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Student Name</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${renderStudentRows(otherStudents)}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    ` : ""}
-  `;
-}
-
-
 $("roster-grade-filter")?.addEventListener("change", () => {
   populateRosterFilters();
   renderClassRoster();
@@ -1258,7 +1228,6 @@ $("roster-grade-filter")?.addEventListener("change", () => {
 
 $("roster-section-filter")?.addEventListener("change", renderClassRoster);
 $("roster-search")?.addEventListener("input", renderClassRoster);
-
 
 $("class-roster-list")?.addEventListener("click", async (event) => {
   const button = event.target.closest(
@@ -1286,7 +1255,6 @@ $("class-roster-list")?.addEventListener("click", async (event) => {
     alert("Unable to open the student record. Please try again.");
   }
 });
-
 
 $("close-student-record")?.addEventListener("click", () => {
   $("student-record-panel").hidden = true;
@@ -1332,10 +1300,10 @@ function renderEvaluationStat(label, value) {
 
 async function openStudentRecord(student) {
   if (currentProfile?.role !== "admin") return;
+
   currentRecordStudentId = student.id;
 
   const recordPanel = $("student-record-panel");
-
   recordPanel.hidden = false;
 
   $("record-student-name").textContent =
@@ -1346,84 +1314,139 @@ async function openStudentRecord(student) {
     `${student.grade_level || "No grade level"} | ` +
     `${student.section || "No section assigned"}`;
 
- 
+  $("record-profile-content").innerHTML = [
+    renderProfileField("Student ID", student.student_id),
+    renderProfileField("First Name", student.first_name),
+    renderProfileField("Last Name", student.last_name),
+    renderProfileField("Grade Level", student.grade_level),
+    renderProfileField("Section", student.section),
+    renderProfileField("Gender", student.gender),
+    renderProfileField("Birthday", student.birthday),
+    renderProfileField("Blood Type", student.blood_type),
+    renderProfileField(
+      "Emergency Contact Name",
+      student.emergency_contact_name
+    ),
+    renderProfileField(
+      "Emergency Contact Relationship",
+      student.emergency_contact_relationship
+    ),
+    renderProfileField(
+      "Emergency Contact Number",
+      student.emergency_contact_number
+    ),
+    renderProfileField(
+      "Account Status",
+      student.is_active ? "Active" : "Inactive"
+    ),
+    renderProfileField("Profile ID", student.id),
 
-$("record-profile-content").innerHTML = [
-  renderProfileField("Student ID", student.student_id),
-  renderProfileField("First Name", student.first_name),
-  renderProfileField("Last Name", student.last_name),
-  renderProfileField("Grade Level", student.grade_level),
-  renderProfileField("Section", student.section),
-  renderProfileField("Gender", student.gender),
-  renderProfileField("Birthday", student.birthday),
-  renderProfileField("Blood Type", student.blood_type),
-  renderProfileField("Emergency Contact Name", student.emergency_contact_name),
-  renderProfileField("Emergency Contact Relationship", student.emergency_contact_relationship),
-  renderProfileField("Emergency Contact Number", student.emergency_contact_number),
-  renderProfileField("Account Status", student.is_active ? "Active" : "Inactive"),
-  renderProfileField("Profile ID", student.id),
+    `
+      <div class="record-info-item">
+        <h4>Edit Student Information</h4>
 
-  `
-    <div class="record-info-item">
-      <h4>Edit Student Information</h4>
+        <label for="admin-edit-first-name">First Name</label>
+        <input
+          id="admin-edit-first-name"
+          type="text"
+          value="${escapeHTML(student.first_name || "")}"
+        >
 
-      <label for="admin-edit-first-name">First Name</label>
-      <input id="admin-edit-first-name" type="text"
-        value="${escapeHTML(student.first_name || "")}">
+        <label for="admin-edit-last-name">Last Name</label>
+        <input
+          id="admin-edit-last-name"
+          type="text"
+          value="${escapeHTML(student.last_name || "")}"
+        >
 
-      <label for="admin-edit-last-name">Last Name</label>
-      <input id="admin-edit-last-name" type="text"
-        value="${escapeHTML(student.last_name || "")}">
+        <label for="admin-edit-grade-level">Grade Level</label>
+        <input
+          id="admin-edit-grade-level"
+          type="text"
+          value="${escapeHTML(student.grade_level || "")}"
+        >
 
-      <label for="admin-edit-grade-level">Grade Level</label>
-      <input id="admin-edit-grade-level" type="text"
-        value="${escapeHTML(student.grade_level || "")}">
+        <label for="admin-edit-section">Section</label>
+        <input
+          id="admin-edit-section"
+          type="text"
+          value="${escapeHTML(student.section || "")}"
+        >
 
-      <label for="admin-edit-section">Section</label>
-      <input id="admin-edit-section" type="text"
-        value="${escapeHTML(student.section || "")}">
+        <label for="admin-edit-gender">Gender</label>
+        <select id="admin-edit-gender">
+          <option value="" ${
+            !student.gender ? "selected" : ""
+          }>Not specified</option>
+          <option value="Male" ${
+            student.gender === "Male" ? "selected" : ""
+          }>Male</option>
+          <option value="Female" ${
+            student.gender === "Female" ? "selected" : ""
+          }>Female</option>
+          <option value="Prefer not to say" ${
+            student.gender === "Prefer not to say" ? "selected" : ""
+          }>Prefer not to say</option>
+        </select>
 
-      <label for="admin-edit-gender">Gender</label>
-      <select id="admin-edit-gender">
-        <option value="" ${!student.gender ? "selected" : ""}>Not specified</option>
-        <option value="Male" ${student.gender === "Male" ? "selected" : ""}>Male</option>
-        <option value="Female" ${student.gender === "Female" ? "selected" : ""}>Female</option>
-        <option value="Prefer not to say" ${student.gender === "Prefer not to say" ? "selected" : ""}>Prefer not to say</option>
-      </select>
+        <label for="admin-edit-birthday">Birthday</label>
+        <input
+          id="admin-edit-birthday"
+          type="date"
+          value="${escapeHTML(student.birthday || "")}"
+        >
 
-      <label for="admin-edit-birthday">Birthday</label>
-      <input id="admin-edit-birthday" type="date"
-        value="${escapeHTML(student.birthday || "")}">
+        <label for="admin-edit-blood-type">Blood Type</label>
+        <select id="admin-edit-blood-type">
+          ${["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+            .map(
+              (type) => `
+                <option value="${type}" ${
+                  student.blood_type === type ? "selected" : ""
+                }>${type || "Not specified"}</option>
+              `
+            )
+            .join("")}
+        </select>
 
-      <label for="admin-edit-blood-type">Blood Type</label>
-      <select id="admin-edit-blood-type">
-        ${["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(type =>
-          `<option value="${type}" ${student.blood_type === type ? "selected" : ""}>${type || "Not specified"}</option>`
-        ).join("")}
-      </select>
+        <label for="admin-edit-emergency-name">
+          Emergency Contact Name
+        </label>
+        <input
+          id="admin-edit-emergency-name"
+          type="text"
+          value="${escapeHTML(student.emergency_contact_name || "")}"
+        >
 
-      <label for="admin-edit-emergency-name">Emergency Contact Name</label>
-      <input id="admin-edit-emergency-name" type="text"
-        value="${escapeHTML(student.emergency_contact_name || "")}">
+        <label for="admin-edit-emergency-relationship">
+          Emergency Contact Relationship
+        </label>
+        <input
+          id="admin-edit-emergency-relationship"
+          type="text"
+          value="${escapeHTML(
+            student.emergency_contact_relationship || ""
+          )}"
+        >
 
-      <label for="admin-edit-emergency-relationship">Emergency Contact Relationship</label>
-      <input id="admin-edit-emergency-relationship" type="text"
-        value="${escapeHTML(student.emergency_contact_relationship || "")}">
+        <label for="admin-edit-emergency-number">
+          Emergency Contact Number
+        </label>
+        <input
+          id="admin-edit-emergency-number"
+          type="tel"
+          value="${escapeHTML(student.emergency_contact_number || "")}"
+        >
 
-      <label for="admin-edit-emergency-number">Emergency Contact Number</label>
-      <input id="admin-edit-emergency-number" type="tel"
-        value="${escapeHTML(student.emergency_contact_number || "")}">
+        <button type="button" id="save-admin-student-info">
+          Save Student Information
+        </button>
 
-      <button type="button" id="save-admin-student-info">
-        Save Student Information
-      </button>
-
-      <p id="admin-student-info-message" role="status"></p>
-    </div>
-  `
-].join("");
-
-
+        <p id="admin-student-info-message" role="status"></p>
+      </div>
+    `
+  ].join("");
+}
 
   setActiveRecordTab("profile");
 
