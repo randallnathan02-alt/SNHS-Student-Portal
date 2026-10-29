@@ -1522,6 +1522,22 @@ async function openStudentRecord(student) {
       "Account Status",
       student.is_active ? "Active" : "Inactive"
     ),
+      `
+    <div class="record-info-item">
+      <h4>Student Account Security</h4>
+      <p>Generate a new temporary password for this student.</p>
+
+      <button
+        type="button"
+        id="reset-student-password-button"
+        ${student.is_active ? "" : "disabled"}
+      >
+        Reset Student Password
+      </button>
+
+      <p id="reset-student-password-message" role="status"></p>
+    </div>
+  `,
     renderProfileField("Profile ID", student.id),
 
     `
