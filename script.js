@@ -1786,6 +1786,91 @@ $("record-profile-content")?.addEventListener(
 
 
 
+$("record-profile-content")?.addEventListener("click", async (event) => {
+  const button = event.target.closest("#reset-student-password-button");
+  if (!button) return;
+
+  if (currentProfile?.role !== "admin" || !currentRecordStudentId) {
+    alert("Administrator access is required.");
+    return;
+  }
+
+  const student = students.find(
+    (item) => String(item.id) === String(currentRecordStudentId)
+  );
+
+  if (!student || !student.student_id) {
+    alert("Student ID not found. Refresh the student list and try again.");
+    return;
+  }
+
+  const confirmed = confirm(
+    `Reset the password for ${getStudentFullName(student)} ` +
+    `(${student.student_id})?\n\nA new temporary password will be generated.`
+  );
+
+  if (!confirmed) return;
+
+  const message = $("reset-student-password-message");
+
+  button.disabled = true;
+  button.textContent = "Resetting Password...";
+
+  if (message) {
+    message.textContent = "Please wait while the password is reset.";
+  }
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke(
+      "reset-student-password",
+      {
+        body: {
+          student_id: student.student_id
+        }
+      }
+    );
+
+    if (error) {
+      throw new Error(
+        error.message || "The password reset request failed."
+      );
+    }
+
+    if (!data?.success || !data?.temporary_password) {
+      throw new Error(
+        data?.error || "The server did not return a temporary password."
+      );
+    }
+
+    if (message) {
+      message.textContent =
+        `Password reset successfully for ${data.student_name} ` +
+        `(${data.student_id}). Temporary password: ${data.temporary_password}. ` +
+        "Give this password to the student privately.";
+    }
+
+    alert(
+      `PASSWORD RESET SUCCESSFUL\n\n` +
+      `Student: ${data.student_name}\n` +
+      `Student ID: ${data.student_id}\n` +
+      `Temporary password: ${data.temporary_password}\n\n` +
+      `Give this password to the student privately.`
+    );
+  } catch (error) {
+    console.error("Student password reset error:", error);
+
+    if (message) {
+      message.textContent =
+        `Password reset failed: ${error.message}`;
+    } else {
+      alert(`Password reset failed: ${error.message}`);
+    }
+  } finally {
+    button.disabled = false;
+    button.textContent = "Reset Student Password";
+  }
+});
+
 async function loadIndividualStudentGrades(student) {
   const gradesContainer = $("record-grades-content");
   const evaluationContainer = $("record-evaluation-content");
