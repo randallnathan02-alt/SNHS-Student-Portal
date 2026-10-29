@@ -193,6 +193,71 @@
           ></p>
         </section>
 
+<!-- TAB 4: MANAGE ADMINISTRATORS -->
+<section
+  id="admin-panel-administrators"
+  class="admin-panel"
+  hidden
+>
+  <h3>Create Administrator Account</h3>
+
+  <p>
+    Create an administrator account with access to Students,
+    Subjects &amp; Terms, and Grades &amp; Evaluation.
+    Share the temporary password privately.
+  </p>
+
+  <form id="create-admin-form">
+    <label for="new-admin-first-name">First Name</label>
+    <input
+      id="new-admin-first-name"
+      type="text"
+      maxlength="100"
+      autocomplete="given-name"
+      required
+    >
+
+    <label for="new-admin-last-name">Last Name</label>
+    <input
+      id="new-admin-last-name"
+      type="text"
+      maxlength="100"
+      autocomplete="family-name"
+      required
+    >
+
+    <label for="new-admin-email">Administrator Email</label>
+    <input
+      id="new-admin-email"
+      type="email"
+      maxlength="254"
+      autocomplete="email"
+      required
+    >
+
+    <label for="new-admin-password">Temporary Password</label>
+    <input
+      id="new-admin-password"
+      type="password"
+      minlength="8"
+      maxlength="128"
+      autocomplete="new-password"
+      required
+    >
+
+    <button type="submit" id="create-admin-button">
+      Create Administrator
+    </button>
+
+    <p
+      id="create-admin-message"
+      class="message"
+      role="status"
+      aria-live="polite"
+    ></p>
+  </form>
+</section>
+
         <!-- TAB 2: SUBJECTS AND TERMS -->
         <section
           id="admin-panel-subjects"
