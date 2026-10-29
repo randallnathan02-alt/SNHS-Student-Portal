@@ -407,6 +407,182 @@ ensureClassRosterMarkup();
 // LOGIN AND DASHBOARD
 // ==================================================
 
+function ensureStudentPasswordChangeUI() {
+  const studentSection = $("student-section");
+
+  if (!studentSection || $("student-change-password-form")) return;
+
+  const card = document.createElement("section");
+  card.id = "student-password-card";
+  card.className = "portal-card";
+  card.style.cssText =
+    "margin-top:24px;padding:24px;border-radius:14px;" +
+    "border:1px solid #dbe3ee;background:#fff;";
+
+  card.innerHTML = `
+    <h2 style="margin-top:0;">Change Password</h2>
+    <p>Update your password to help keep your student account secure.</p>
+
+    <form id="student-change-password-form">
+      <div style="margin-bottom:14px;">
+        <label for="student-current-password">Current Password</label>
+        <input
+          type="password"
+          id="student-current-password"
+          autocomplete="current-password"
+          required
+          style="display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px;"
+        >
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label for="student-new-password">New Password</label>
+        <input
+          type="password"
+          id="student-new-password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+          style="display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px;"
+        >
+        <small>Use at least 8 characters.</small>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label for="student-confirm-password">Confirm New Password</label>
+        <input
+          type="password"
+          id="student-confirm-password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+          style="display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px;"
+        >
+      </div>
+
+      <button type="submit" id="student-change-password-button">
+        Update Password
+      </button>
+
+      <p
+        id="student-change-password-message"
+        role="status"
+        aria-live="polite"
+        style="margin-bottom:0;"
+      ></p>
+    </form>
+  `;
+
+  studentSection.appendChild(card);
+
+  $("student-change-password-form").addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+
+      if (currentProfile?.role !== "student" || !currentUser?.email) {
+        showMessage(
+          $("student-change-password-message"),
+          "Please sign in again before changing your password.",
+          true
+        );
+        return;
+      }
+
+      const currentPassword = $("student-current-password").value;
+      const newPassword = $("student-new-password").value;
+      const confirmPassword = $("student-confirm-password").value;
+      const button = $("student-change-password-button");
+      const message = $("student-change-password-message");
+
+      if (newPassword.length < 8) {
+        showMessage(
+          message,
+          "Your new password must contain at least 8 characters.",
+          true
+        );
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showMessage(
+          message,
+          "The new password and confirmation do not match.",
+          true
+        );
+        return;
+      }
+
+      if (newPassword === currentPassword) {
+        showMessage(
+          message,
+          "Your new password must be different from your current password.",
+          true
+        );
+        return;
+      }
+
+      button.disabled = true;
+      showMessage(message, "Verifying your current password...");
+
+      try {
+        // Verify the student's current password.
+        const { error: verifyError } =
+          await supabaseClient.auth.signInWithPassword({
+            email: currentUser.email,
+            password: currentPassword
+          });
+
+        if (verifyError) {
+          showMessage(
+            message,
+            "Your current password is incorrect.",
+            true
+          );
+          return;
+        }
+
+        // Update the authenticated user's Supabase password.
+        const { error: updateError } =
+          await supabaseClient.auth.updateUser({
+            password: newPassword
+          });
+
+        if (updateError) {
+          console.error("Password update error:", updateError);
+
+          showMessage(
+            message,
+            updateError.message ||
+              "Unable to update your password. Please try again.",
+            true
+          );
+          return;
+        }
+
+        $("student-current-password").value = "";
+        $("student-new-password").value = "";
+        $("student-confirm-password").value = "";
+
+        showMessage(
+          message,
+          "Password changed successfully. Use your new password the next time you sign in."
+        );
+      } catch (error) {
+        console.error("Change password error:", error);
+
+        showMessage(
+          message,
+          "A connection error occurred. Please try again.",
+          true
+        );
+      } finally {
+        button.disabled = false;
+      }
+    }
+  );
+}
+
 async function loadDashboard() {
   const { data: sessionData, error: sessionError } =
     await supabaseClient.auth.getSession();
