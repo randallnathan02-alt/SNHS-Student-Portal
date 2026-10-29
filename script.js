@@ -1821,14 +1821,39 @@ $("record-profile-content")?.addEventListener("click", async (event) => {
   }
 
   try {
-    const { data, error } = await supabaseClient.functions.invoke(
-      "reset-student-password",
-      {
-        body: {
-          student_id: student.student_id
-        }
-      }
-    );
+    const {
+  data: sessionData,
+  error: sessionError
+} = await supabaseClient.auth.getSession();
+
+if (sessionError || !sessionData.session?.access_token) {
+  throw new Error(
+    "Your administrator session is missing or expired. Sign out and sign in again."
+  );
+}
+
+const response = await fetch(
+  `${SUPABASE_URL}/functions/v1/reset-student-password`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_PUBLISHABLE_KEY,
+      "Authorization": `Bearer ${sessionData.session.access_token}`
+    },
+    body: JSON.stringify({
+      student_id: student.student_id
+    })
+  }
+);
+
+const data = await response.json().catch(() => ({}));
+
+if (!response.ok) {
+  throw new Error(
+    data.error || `Password reset request failed (HTTP ${response.status}).`
+  );
+}
 
     if (error) {
       throw new Error(
