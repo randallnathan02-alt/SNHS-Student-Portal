@@ -1855,11 +1855,6 @@ if (!response.ok) {
   );
 }
 
-    if (error) {
-      throw new Error(
-        error.message || "The password reset request failed."
-      );
-    }
 
     if (!data?.success || !data?.temporary_password) {
       throw new Error(
