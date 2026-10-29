@@ -943,6 +943,116 @@ createStudentForm.addEventListener("submit", async (event) => {
   }
 });
 
+ // ==================================================
+// CREATE ADMINISTRATOR ACCOUNT
+// ==================================================
+
+const createAdminForm = $("create-admin-form");
+const createAdminMessage = $("create-admin-message");
+
+if (createAdminForm) {
+  createAdminForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (currentProfile?.role !== "admin") {
+      showMessage(
+        createAdminMessage,
+        "Administrator access is required.",
+        true
+      );
+      return;
+    }
+
+    const button = $("create-admin-button");
+    button.disabled = true;
+
+    showMessage(
+      createAdminMessage,
+      "Creating administrator account..."
+    );
+
+    try {
+      const {
+        data: sessionData,
+        error: sessionError
+      } = await supabaseClient.auth.getSession();
+
+      const accessToken = sessionData.session?.access_token;
+
+      if (sessionError || !accessToken) {
+        showMessage(
+          createAdminMessage,
+          "Please sign in again as administrator.",
+          true
+        );
+        return;
+      }
+
+      const payload = {
+        first_name: $("new-admin-first-name").value.trim(),
+        last_name: $("new-admin-last-name").value.trim(),
+        email: $("new-admin-email").value.trim().toLowerCase(),
+        temporary_password: $("new-admin-password").value
+      };
+
+      if (
+        !payload.first_name ||
+        !payload.last_name ||
+        !payload.email ||
+        payload.temporary_password.length < 8
+      ) {
+        showMessage(
+          createAdminMessage,
+          "Complete all fields. The password must contain at least 8 characters.",
+          true
+        );
+        return;
+      }
+
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/create-admin-account`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        showMessage(
+          createAdminMessage,
+          result.error || "Could not create administrator account.",
+          true
+        );
+        return;
+      }
+
+      showMessage(
+        createAdminMessage,
+        `Administrator account created successfully for ${payload.email}.`
+      );
+
+      createAdminForm.reset();
+    } catch (error) {
+      console.error("Create administrator error:", error);
+
+      showMessage(
+        createAdminMessage,
+        "Connection error. Please try again.",
+        true
+      );
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
 // ==================================================
 // ADMIN TABS
 // ==================================================
