@@ -623,6 +623,7 @@ async function loadDashboard() {
 
 if (profile.role === "student") {
   populateStudentProfile(profile);
+  ensureStudentPasswordChangeUI();
 }
 
   loginSection.hidden = true;
