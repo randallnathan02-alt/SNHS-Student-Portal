@@ -874,14 +874,15 @@ createStudentForm.addEventListener("submit", async (event) => {
       return;
     }
 
-    const payload = {
-      student_id: $("new-student-id").value.trim(),
-      first_name: $("first-name").value.trim(),
-      last_name: $("last-name").value.trim(),
-      grade_level: $("grade-level").value.trim(),
-      section: $("section").value.trim(),
-      temporary_password: $("temporary-password").value
-    };
+   const payload = {
+  student_id: $("new-student-id").value.trim(),
+  first_name: $("first-name").value.trim(),
+  middle_initial: $("middle-initial").value.trim(),
+  last_name: $("last-name").value.trim(),
+  grade_level: $("grade-level").value.trim(),
+  section: $("section").value.trim(),
+  temporary_password: $("temporary-password").value
+};
 
     if (
       !payload.student_id ||
