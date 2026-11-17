@@ -622,7 +622,6 @@ async function loadDashboard() {
   currentProfile = profile;
 
 if (profile.role === "student") {
-  populateStudentProfile(profile);
   ensureStudentPasswordChangeUI();
 }
 
