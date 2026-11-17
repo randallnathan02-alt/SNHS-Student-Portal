@@ -3468,8 +3468,8 @@ if (gradesList) {
 
 const gradingSheetContainer = $("grades-list");
 
-if (gradesList) {
-  gradesList.addEventListener("click", async (event) => {
+if (gradingSheetContainer) {
+  gradingSheetContainer.addEventListener("click", async (event) => {
     const button = event.target.closest(".edit-grade-button");
     if (!button) return;
 
