@@ -598,9 +598,9 @@ async function loadDashboard() {
   const { data: profile, error: profileError } =
     await supabaseClient
       .from("profiles")
-      .select(
-        "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
-      )
+     .select(
+  "id, student_id, first_name, middle_initial, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
+)
       .eq("id", currentUser.id)
       .maybeSingle();
 
@@ -1105,9 +1105,8 @@ async function loadStudents() {
    
 
 .select(
-  "id, student_id, first_name, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
+  "id, student_id, first_name, middle_initial, last_name, role, is_active, grade_level, section, gender, birthday, blood_type, emergency_contact_name, emergency_contact_relationship, emergency_contact_number"
 )
-
 
     .eq("role", "student")
     .order("last_name", { ascending: true });
@@ -1158,7 +1157,13 @@ async function loadStudents() {
 
 
 function getStudentFullName(student) {
-  return `${student.first_name || ""} ${student.last_name || ""}`.trim();
+  const firstName = student.first_name || "";
+  const middleInitial = student.middle_initial || "";
+  const lastName = student.last_name || "";
+
+  return `${firstName} ${middleInitial} ${lastName}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function sortStudentsByGenderAndName(studentList) {
@@ -1610,6 +1615,7 @@ async function openStudentRecord(student) {
   $("record-profile-content").innerHTML = [
     renderProfileField("Student ID", student.student_id),
     renderProfileField("First Name", student.first_name),
+    renderProfileField("Middle Initial", student.middle_initial),
     renderProfileField("Last Name", student.last_name),
     renderProfileField("Grade Level", student.grade_level),
     renderProfileField("Section", student.section),
@@ -1660,7 +1666,13 @@ async function openStudentRecord(student) {
           type="text"
           value="${escapeHTML(student.first_name || "")}"
         >
-
+<label for="admin-edit-middle-initial">Middle Initial</label>
+<input
+  id="admin-edit-middle-initial"
+  type="text"
+  maxlength="10"
+  value="${escapeHTML(student.middle_initial || "")}"
+>
         <label for="admin-edit-last-name">Last Name</label>
         <input
           id="admin-edit-last-name"
@@ -1793,8 +1805,9 @@ $("record-profile-content")?.addEventListener(
 
     const message = $("admin-student-info-message");
 
-    const firstName = $("admin-edit-first-name").value.trim();
-    const lastName = $("admin-edit-last-name").value.trim();
+   const firstName = $("admin-edit-first-name").value.trim();
+const middleInitial = $("admin-edit-middle-initial").value.trim();
+const lastName = $("admin-edit-last-name").value.trim();
     const gradeLevel = $("admin-edit-grade-level").value.trim();
     const section = $("admin-edit-section").value.trim();
 
@@ -1807,9 +1820,10 @@ $("record-profile-content")?.addEventListener(
       return;
     }
 
-    const updates = {
-      first_name: firstName,
-      last_name: lastName,
+  const updates = {
+  first_name: firstName,
+  middle_initial: middleInitial || null,
+  last_name: lastName,
       grade_level: gradeLevel || null,
       section: section || null,
       gender: $("admin-edit-gender").value || null,
