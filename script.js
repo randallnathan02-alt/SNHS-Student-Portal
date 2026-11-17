@@ -3466,7 +3466,7 @@ if (gradesList) {
 // EDIT AN EXISTING GRADE
 // ==================================================
 
-const gradesList = $("grades-list");
+const gradingSheetContainer = $("grades-list");
 
 if (gradesList) {
   gradesList.addEventListener("click", async (event) => {
