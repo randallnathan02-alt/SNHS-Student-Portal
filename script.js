@@ -2943,13 +2943,18 @@ async function loadGradeEntryData() {
 // ADMIN: DISPLAY SAVED GRADES
 // ==================================================
 
+
+// ==================================================
+// ADMIN: CLASS GRADING SHEET
+// ==================================================
+
 async function loadAdminGrades() {
   if (currentProfile?.role !== "admin") return;
 
   const container = $("grades-list");
   if (!container) return;
 
-  container.textContent = "Loading grades...";
+  container.textContent = "Loading class grading sheet...";
 
   const { data, error } = await supabaseClient
     .from("student_grades")
@@ -2963,80 +2968,498 @@ async function loadAdminGrades() {
   }
 
   grades = data || [];
+
+  populateGradingSheetFilters();
   renderAdminGrades();
 }
 
+// Populate the three grading sheet filters.
+function populateGradingSheetFilters() {
+  const termFilter = $("sheet-term-filter");
+  const gradeFilter = $("sheet-grade-filter");
+
+  if (!termFilter || !gradeFilter) return;
+
+  setOptions(
+    termFilter,
+    terms,
+    "id",
+    (term) => `${term.term_name} — ${term.school_year}`,
+    "Select academic term"
+  );
+
+  const gradeLevels = getSortedUnique(
+    students.map((student) => student.grade_level)
+  ).map((grade) => ({
+    id: grade,
+    name: grade
+  }));
+
+  setOptions(
+    gradeFilter,
+    gradeLevels,
+    "id",
+    (item) => item.name,
+    "Select grade level"
+  );
+
+  updateGradingSheetSections();
+}
+
+// Populate sections according to the selected grade level.
+function updateGradingSheetSections() {
+  const gradeFilter = $("sheet-grade-filter");
+  const sectionFilter = $("sheet-section-filter");
+
+  if (!gradeFilter || !sectionFilter) return;
+
+  const selectedGrade = gradeFilter.value;
+
+  const sections = getSortedUnique(
+    students
+      .filter((student) =>
+        normalizeGradeLevel(student.grade_level) ===
+        normalizeGradeLevel(selectedGrade)
+      )
+      .map((student) => student.section)
+  ).map((section) => ({
+    id: section,
+    name: section
+  }));
+
+  setOptions(
+    sectionFilter,
+    sections,
+    "id",
+    (item) => item.name,
+    "Select section"
+  );
+}
+
+// Normalize gender values.
+function getSheetGender(student) {
+  const gender = String(student.gender || "")
+    .trim()
+    .toLowerCase();
+
+  if (["male", "m", "man", "boy"].includes(gender)) {
+    return 0;
+  }
+
+  if (["female", "f", "woman", "girl"].includes(gender)) {
+    return 1;
+  }
+
+  return 2;
+}
+
+// Sort male first, female second, then unspecified.
+// Within each group, sort by surname and first name.
+function sortGradingSheetStudents(studentList) {
+  return [...studentList].sort((a, b) => {
+    const genderDifference =
+      getSheetGender(a) - getSheetGender(b);
+
+    if (genderDifference !== 0) {
+      return genderDifference;
+    }
+
+    const surnameDifference =
+      String(a.last_name || "").localeCompare(
+        String(b.last_name || ""),
+        undefined,
+        { sensitivity: "base" }
+      );
+
+    if (surnameDifference !== 0) {
+      return surnameDifference;
+    }
+
+    return String(a.first_name || "").localeCompare(
+      String(b.first_name || ""),
+      undefined,
+      { sensitivity: "base" }
+    );
+  });
+}
+
+// Calculate the average using numerical grades only.
+function calculateSheetAverage(studentId, selectedSubjects) {
+  const studentGrades = selectedSubjects
+    .map((subject) => {
+      const record = grades.find(
+        (item) =>
+          String(item.student_id) === String(studentId) &&
+          String(item.subject_id) === String(subject.id)
+      );
+
+      if (
+        !record ||
+        record.grade === null ||
+        record.grade === undefined ||
+        record.grade === ""
+      ) {
+        return null;
+      }
+
+      const value = Number(record.grade);
+
+      return Number.isFinite(value) ? value : null;
+    })
+    .filter((value) => value !== null);
+
+  if (studentGrades.length === 0) {
+    return null;
+  }
+
+  const total = studentGrades.reduce(
+    (sum, value) => sum + value,
+    0
+  );
+
+  return total / studentGrades.length;
+}
+
+// Display the Excel-like grading sheet.
 function renderAdminGrades() {
   const container = $("grades-list");
   if (!container) return;
 
-  if (!grades.length) {
-    container.textContent = "No grades have been recorded yet.";
+  const termId = $("sheet-term-filter")?.value || "";
+  const gradeLevel = $("sheet-grade-filter")?.value || "";
+  const section = $("sheet-section-filter")?.value || "";
+
+  if (!termId || !gradeLevel || !section) {
+    container.innerHTML =
+      "<p>Select an academic term, grade level, and section to display the class grading sheet.</p>";
     return;
   }
 
+  const selectedStudents = sortGradingSheetStudents(
+    students.filter((student) =>
+      normalizeGradeLevel(student.grade_level) ===
+        normalizeGradeLevel(gradeLevel) &&
+      String(student.section || "").toLowerCase() ===
+        section.toLowerCase()
+    )
+  );
+
+  const selectedSubjects = subjects
+    .filter((subject) =>
+      String(subject.term_id) === String(termId) &&
+      normalizeGradeLevel(subject.grade_level) ===
+        normalizeGradeLevel(gradeLevel)
+    )
+    .sort((a, b) =>
+      String(a.subject_name || "").localeCompare(
+        String(b.subject_name || ""),
+        undefined,
+        { sensitivity: "base" }
+      )
+    );
+
+  if (selectedStudents.length === 0) {
+    container.innerHTML =
+      "<p>No students were found in the selected section.</p>";
+    return;
+  }
+
+  if (selectedSubjects.length === 0) {
+    container.innerHTML =
+      "<p>No subjects are assigned to this grade level for the selected academic term.</p>";
+    return;
+  }
+
+  const term = terms.find(
+    (item) => String(item.id) === String(termId)
+  );
+
+  const rows = selectedStudents.map((student, index) => {
+    const subjectCells = selectedSubjects.map((subject) => {
+      const record = grades.find(
+        (item) =>
+          String(item.student_id) === String(student.id) &&
+          String(item.subject_id) === String(subject.id)
+      );
+
+      const gradeValue =
+        record?.grade === null || record?.grade === undefined
+          ? ""
+          : record.grade;
+
+      return `
+        <td>
+          <input
+            type="number"
+            class="sheet-grade-input"
+            min="0"
+            max="100"
+            step="0.01"
+            value="${escapeHTML(gradeValue)}"
+            data-student-id="${escapeHTML(student.id)}"
+            data-subject-id="${escapeHTML(subject.id)}"
+            aria-label="${escapeHTML(student.first_name)} ${escapeHTML(student.last_name)} - ${escapeHTML(subject.subject_name)}"
+          >
+        </td>
+      `;
+    }).join("");
+
+    const average = calculateSheetAverage(
+      student.id,
+      selectedSubjects
+    );
+
+    return `
+      <tr data-sheet-student="${escapeHTML(student.id)}">
+        <td>${index + 1}</td>
+        <td>${escapeHTML(student.student_id || "—")}</td>
+        <td>${escapeHTML(student.last_name || "")}</td>
+        <td>${escapeHTML(student.first_name || "")}</td>
+        ${subjectCells}
+        <td class="sheet-average">
+          ${average === null ? "—" : average.toFixed(2)}
+        </td>
+      </tr>
+    `;
+  }).join("");
+
   container.innerHTML = `
+    <div class="grading-sheet-summary">
+      <strong>Academic Term:</strong>
+      ${escapeHTML(term?.term_name || "")} —
+      ${escapeHTML(term?.school_year || "")}
+      <br>
+      <strong>Grade Level:</strong>
+      ${escapeHTML(gradeLevel)}
+      <br>
+      <strong>Section:</strong>
+      ${escapeHTML(section)}
+      <br>
+      <strong>Total Students:</strong>
+      ${selectedStudents.length}
+    </div>
+
     <div class="table-container">
-      <table>
+      <table class="grading-sheet-table">
         <thead>
           <tr>
-            <th>Student ID</th>
-            <th>Student Name</th>
-            <th>Grade Level</th>
-            <th>School Year</th>
-            <th>Term</th>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Evaluation</th>
-            <th>Action</th>
+            <th>No.</th>
+            <th>LRN</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            ${selectedSubjects.map((subject) => `
+              <th>${escapeHTML(subject.subject_name)}</th>
+            `).join("")}
+            <th>Average</th>
           </tr>
         </thead>
 
         <tbody>
-          ${grades.map((item) => {
-            const student = students.find(
-              (s) => String(s.id) === String(item.student_id)
-            );
-
-            const subject = subjects.find(
-              (s) => String(s.id) === String(item.subject_id)
-            );
-
-            const term = terms.find(
-              (t) => String(t.id) === String(subject?.term_id)
-            );
-
-            const studentName = student
-              ? `${student.first_name || ""} ${student.last_name || ""}`.trim()
-              : "Unknown student";
-
-            return `
-              <tr>
-                <td>${escapeHTML(student?.student_id || "Unknown")}</td>
-                <td>${escapeHTML(studentName)}</td>
-                <td>${escapeHTML(
-                  subject?.grade_level || student?.grade_level || "—"
-                )}</td>
-                <td>${escapeHTML(term?.school_year || "Unknown")}</td>
-                <td>${escapeHTML(term?.term_name || "Unknown")}</td>
-                <td>${escapeHTML(subject?.subject_name || "Unknown")}</td>
-                <td>${formatGrade(item.grade)}</td>
-                <td>${escapeHTML(gradeEvaluation(item.grade))}</td>
-                <td>
-                  <button
-                    type="button"
-                    class="edit-grade-button"
-                    data-student-id="${escapeHTML(item.student_id)}"
-                    data-subject-id="${escapeHTML(item.subject_id)}"
-                  >Edit</button>
-                </td>
-              </tr>
-            `;
-          }).join("")}
+          ${rows}
         </tbody>
       </table>
     </div>
+
+    <p class="grading-sheet-note">
+      Enter a grade from 0 to 100 in a subject cell.
+      Changes are saved automatically when you leave the cell.
+      Blank cells mean the student has not yet been graded.
+    </p>
   `;
+}
+
+// Update the average displayed for one student.
+function updateSheetStudentAverage(studentId) {
+  const row = document.querySelector(
+    `[data-sheet-student="${CSS.escape(String(studentId))}"]`
+  );
+
+  if (!row) return;
+
+  const selectedSubjects = subjects.filter((subject) =>
+    String(subject.term_id) ===
+      String($("sheet-term-filter")?.value) &&
+    normalizeGradeLevel(subject.grade_level) ===
+      normalizeGradeLevel($("sheet-grade-filter")?.value)
+  );
+
+  const average = calculateSheetAverage(
+    studentId,
+    selectedSubjects
+  );
+
+  const averageCell = row.querySelector(".sheet-average");
+
+  if (averageCell) {
+    averageCell.textContent =
+      average === null ? "—" : average.toFixed(2);
+  }
+}
+
+// Filter event listeners.
+$("sheet-term-filter")?.addEventListener(
+  "change",
+  renderAdminGrades
+);
+
+$("sheet-grade-filter")?.addEventListener("change", () => {
+  updateGradingSheetSections();
+  renderAdminGrades();
+});
+
+$("sheet-section-filter")?.addEventListener(
+  "change",
+  renderAdminGrades
+);
+
+// Save a grade when the administrator leaves an input cell.
+const gradesList = $("grades-list");
+
+if (gradesList) {
+  gradesList.addEventListener("change", async (event) => {
+    const input = event.target.closest(".sheet-grade-input");
+
+    if (!input) return;
+
+    if (currentProfile?.role !== "admin" || !currentUser) {
+      alert("Administrator access is required.");
+      return;
+    }
+
+    const studentId = input.dataset.studentId;
+    const subjectId = input.dataset.subjectId;
+    const rawGrade = input.value.trim();
+
+    if (rawGrade === "") {
+      alert(
+        "Blank grades are not saved. Enter a grade from 0 to 100."
+      );
+      input.value = "";
+      return;
+    }
+
+    const newGrade = Number(rawGrade);
+
+    if (
+      !Number.isFinite(newGrade) ||
+      newGrade < 0 ||
+      newGrade > 100
+    ) {
+      alert("Invalid grade. Enter a number from 0 to 100.");
+      input.focus();
+      return;
+    }
+
+    const student = students.find(
+      (item) => String(item.id) === String(studentId)
+    );
+
+    const subject = subjects.find(
+      (item) => String(item.id) === String(subjectId)
+    );
+
+    if (
+      !student ||
+      !subject ||
+      String(subject.term_id) !==
+        String($("sheet-term-filter")?.value) ||
+      normalizeGradeLevel(subject.grade_level) !==
+        normalizeGradeLevel(student.grade_level)
+    ) {
+      alert("The selected student and subject do not match.");
+      return;
+    }
+
+    input.disabled = true;
+
+    try {
+      // Verify that the student is enrolled in this subject.
+      const { data: enrollment, error: enrollmentError } =
+        await supabaseClient
+          .from("student_subjects")
+          .select("id")
+          .eq("student_id", studentId)
+          .eq("subject_id", subjectId)
+          .maybeSingle();
+
+      if (enrollmentError) {
+        throw new Error(
+          `Could not verify enrollment: ${enrollmentError.message}`
+        );
+      }
+
+      if (!enrollment) {
+        throw new Error(
+          "This student is not enrolled in the selected subject. Check automatic enrollment."
+        );
+      }
+
+      const { data, error } = await supabaseClient
+        .from("student_grades")
+        .upsert(
+          {
+            student_id: studentId,
+            subject_id: Number(subjectId),
+            grade: newGrade,
+            updated_by: currentUser.id,
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: "student_id,subject_id" }
+        )
+        .select("student_id, subject_id, grade");
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error(
+          "No grade was saved. Check administrator permissions and database policies."
+        );
+      }
+
+      // Update the local grades array.
+      const existingIndex = grades.findIndex(
+        (item) =>
+          String(item.student_id) === String(studentId) &&
+          String(item.subject_id) === String(subjectId)
+      );
+
+      const savedGrade = {
+        ...data[0],
+        updated_at: new Date().toISOString()
+      };
+
+      if (existingIndex >= 0) {
+        grades[existingIndex] = {
+          ...grades[existingIndex],
+          ...savedGrade
+        };
+      } else {
+        grades.push(savedGrade);
+      }
+
+      updateSheetStudentAverage(studentId);
+
+      showMessage(
+        $("sheet-message"),
+        `Grade saved: ${student.first_name} ${student.last_name} — ${subject.subject_name}: ${newGrade} (${gradeEvaluation(newGrade)}).`
+      );
+
+    } catch (error) {
+      console.error("Class grading sheet save error:", error);
+
+      showMessage(
+        $("sheet-message"),
+        `Unable to save grade: ${error.message}`,
+        true
+      );
+
+      // Reload the actual saved values.
+      await loadAdminGrades();
+
+    } finally {
+      input.disabled = false;
+    }
+  });
 }
 
 // ==================================================
