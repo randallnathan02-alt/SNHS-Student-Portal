@@ -430,19 +430,49 @@
             role="status"
           ></p>
 
-          <h3>Saved Grades</h3>
+      <h3>Class Grading Sheet</h3>
 
-          <button
-            type="button"
-            id="refresh-grades-button"
-            class="secondary-button"
-          >
-            Refresh Grades
-          </button>
+<p>
+  Select the academic term, grade level, and section to view the class record.
+  Enter grades directly into the table.
+</p>
 
-          <div id="grades-list" class="table-container">
-            <p>Saved grades will appear here.</p>
-          </div>
+<div class="grading-sheet-filters">
+  <div>
+    <label for="sheet-term-filter">Academic Term</label>
+    <select id="sheet-term-filter">
+      <option value="">Select academic term</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="sheet-grade-filter">Grade Level</label>
+    <select id="sheet-grade-filter">
+      <option value="">Select grade level</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="sheet-section-filter">Section</label>
+    <select id="sheet-section-filter">
+      <option value="">Select section</option>
+    </select>
+  </div>
+</div>
+
+<p id="sheet-message" class="message" role="status"></p>
+
+<button
+  type="button"
+  id="refresh-grades-button"
+  class="secondary-button"
+>
+  Refresh Grading Sheet
+</button>
+
+<div id="grades-list" class="table-container">
+  <p>Select an academic term, grade level, and section.</p>
+</div>
 
           <h3>Grading Scale</h3>
 
